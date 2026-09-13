@@ -1,0 +1,2294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>雨夜便利店 - Rainy Night Convenience Store</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: #0A0D12;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            cursor: grab;
+        }
+
+        canvas:active {
+            cursor: grabbing;
+        }
+
+        #loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0A0D12;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: #38BDF8;
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            z-index: 100;
+            transition: opacity 0.5s;
+        }
+
+        #loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 3px solid #38BDF8;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            animation: rotation 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #control-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(10, 13, 18, 0.92);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            color: #E8E8E8;
+            font-size: 0.875rem;
+            min-width: 280px;
+            max-height: 85vh;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            z-index: 10;
+            transition: transform 0.3s, opacity 0.3s;
+        }
+
+        #control-panel.hidden {
+            transform: translateX(320px);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #control-panel h3 {
+            margin: 0 0 1rem 0;
+            color: #38BDF8;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        .control-group {
+            margin-bottom: 1.25rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+        }
+
+        .control-group:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            color: #B8C5D0;
+            font-size: 0.8125rem;
+        }
+
+        .control-value {
+            color: #38BDF8;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 4px;
+            border-radius: 999px;
+            background: rgba(56, 189, 248, 0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #38BDF8;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #38BDF8;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.2s;
+        }
+
+        input[type="range"]::-moz-range-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .control-button {
+            flex: 1;
+            padding: 0.5rem;
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 6px;
+            color: #38BDF8;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .control-button:hover {
+            background: rgba(56, 189, 248, 0.25);
+            border-color: rgba(56, 189, 248, 0.5);
+        }
+
+        .control-button.active {
+            background: #38BDF8;
+            color: #0A0D12;
+            border-color: #38BDF8;
+        }
+
+        #toggle-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(10, 13, 18, 0.92);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 8px;
+            color: #38BDF8;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            z-index: 11;
+            backdrop-filter: blur(10px);
+            transition: all 0.2s;
+        }
+
+        #toggle-panel:hover {
+            background: rgba(56, 189, 248, 0.15);
+            border-color: rgba(56, 189, 248, 0.5);
+        }
+
+        .stats-info {
+            font-size: 0.75rem;
+            color: #6B8CAE;
+            margin-top: 0.5rem;
+            line-height: 1.4;
+        }
+
+        #control-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #control-panel::-webkit-scrollbar-track {
+            background: rgba(56, 189, 248, 0.05);
+            border-radius: 3px;
+        }
+
+        #control-panel::-webkit-scrollbar-thumb {
+            background: rgba(56, 189, 248, 0.3);
+            border-radius: 3px;
+        }
+
+        #control-panel::-webkit-scrollbar-thumb:hover {
+            background: rgba(56, 189, 248, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div id="loading">
+        <div class="loader"></div>
+        <div>加载中...</div>
+    </div>
+
+    <button id="toggle-panel" title="切换控制面板">⚙</button>
+
+    <div id="control-panel">
+        <h3>场景控制</h3>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>帧率限制</span>
+                <span class="control-value" id="fps-value">60 FPS</span>
+            </div>
+            <input type="range" id="fps-slider" min="15" max="120" value="60" step="5">
+            <div class="stats-info">实际 FPS: <span id="actual-fps">--</span></div>
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>雨滴密度</span>
+                <span class="control-value" id="rain-value">2000</span>
+            </div>
+            <input type="range" id="rain-slider" min="500" max="5000" value="2000" step="100">
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>雨滴大小</span>
+                <span class="control-value" id="rain-size-value">0.08</span>
+            </div>
+            <input type="range" id="rain-size-slider" min="0.03" max="0.15" value="0.08" step="0.01">
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>雨滴速度</span>
+                <span class="control-value" id="rain-speed-value">1.0x</span>
+            </div>
+            <input type="range" id="rain-speed-slider" min="0.3" max="2.5" value="1.0" step="0.1">
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>阴影质量</span>
+                <span class="control-value" id="shadow-value">高</span>
+            </div>
+            <div class="button-group">
+                <button class="control-button" data-shadow="512">低</button>
+                <button class="control-button" data-shadow="1024">中</button>
+                <button class="control-button active" data-shadow="2048">高</button>
+                <button class="control-button" data-shadow="4096">超高</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>光照强度</span>
+                <span class="control-value" id="light-value">100%</span>
+            </div>
+            <input type="range" id="light-slider" min="30" max="200" value="100" step="5">
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>雾气浓度</span>
+                <span class="control-value" id="fog-value">100%</span>
+            </div>
+            <input type="range" id="fog-slider" min="0" max="200" value="100" step="10">
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>渲染分辨率</span>
+                <span class="control-value" id="resolution-value">100%</span>
+            </div>
+            <input type="range" id="resolution-slider" min="50" max="200" value="100" step="10">
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>抗锯齿</span>
+            </div>
+            <div class="button-group">
+                <button class="control-button active" data-aa="on">开启</button>
+                <button class="control-button" data-aa="off">关闭</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <div class="button-group">
+                <button class="control-button" id="reset-button">重置默认</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js';
+
+// ===== 场景初始化 =====
+let scene, camera, renderer, controls, composer;
+let rainParticles, rainGeometry, rainMaterial;
+let storeLight, signLight, vendingLight;
+let timeOfDay = 0;
+
+// 性能控制参数
+let settings = {
+    targetFPS: 60,
+    rainDensity: 2000,
+    rainSize: 0.08,
+    rainSpeed: 1.0,
+    shadowQuality: 2048,
+    lightIntensity: 1.0,
+    fogDensity: 1.0,
+    pixelRatio: 1.0,
+    antialiasing: true
+};
+
+let lastFrameTime = performance.now();
+let frameCount = 0;
+let fpsUpdateTime = performance.now();
+let currentFPS = 60;
+
+function init() {
+    // 场景
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x1A1D2B);
+    scene.fog = new THREE.Fog(0x2A3545, 20, 50);
+
+    // 相机
+    const container = document.getElementById('canvas-container');
+    camera = new THREE.PerspectiveCamera(
+        45,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+    );
+    camera.position.set(18, 14, 18);
+    camera.lookAt(0, 2, 0);
+
+    // 渲染器
+    renderer = new THREE.WebGLRenderer({
+        antialias: settings.antialiasing,
+        powerPreference: 'high-performance'
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2) * settings.pixelRatio);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.5;
+    container.appendChild(renderer.domElement);
+
+    // 控制器
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 8;
+    controls.maxDistance = 35;
+    controls.maxPolarAngle = Math.PI / 2.2;
+    controls.target.set(0, 2, 0);
+
+    // 后处理
+    setupPostProcessing();
+
+    // 构建场景
+    createBase();
+    createStore();
+    createStreetElements();
+    createLighting();
+    createRain();
+    createAtmosphere();
+
+    // 控制面板
+    setupControlPanel();
+
+    // 事件监听
+    window.addEventListener('resize', onWindowResize);
+
+    // 隐藏加载画面
+    setTimeout(() => {
+        document.getElementById('loading').classList.add('hidden');
+    }, 800);
+
+    animate();
+}
+
+function setupPostProcessing() {
+    composer = new EffectComposer(renderer);
+    const renderPass = new RenderPass(scene, camera);
+    composer.addPass(renderPass);
+}
+
+// ===== 底座 =====
+function createBase() {
+    const baseSize = 20;
+    const baseHeight = 0.8;
+
+    // 主底座
+    const baseGeometry = new THREE.BoxGeometry(baseSize, baseHeight, baseSize);
+    const baseMaterial = new THREE.MeshStandardMaterial({
+        color: 0x1A1D25,
+        roughness: 0.9,
+        metalness: 0.1
+    });
+    const base = new THREE.Mesh(baseGeometry, baseMaterial);
+    base.position.y = -baseHeight / 2;
+    base.receiveShadow = true;
+    scene.add(base);
+
+    // 底座边缘
+    const edgeGeometry = new THREE.BoxGeometry(baseSize + 0.2, 0.1, baseSize + 0.2);
+    const edgeMaterial = new THREE.MeshStandardMaterial({
+        color: 0x2A2D35,
+        roughness: 0.7,
+        metalness: 0.3
+    });
+    const edge = new THREE.Mesh(edgeGeometry, edgeMaterial);
+    edge.position.y = -baseHeight;
+    scene.add(edge);
+
+    // 地面 - 湿润的柏油路
+    const roadGeometry = new THREE.PlaneGeometry(baseSize - 2, baseSize - 2);
+    const roadMaterial = new THREE.MeshStandardMaterial({
+        color: 0x1C1F28,
+        roughness: 0.3,
+        metalness: 0.6,
+        envMapIntensity: 1.5
+    });
+    const road = new THREE.Mesh(roadGeometry, roadMaterial);
+    road.rotation.x = -Math.PI / 2;
+    road.position.y = 0.01;
+    road.receiveShadow = true;
+    scene.add(road);
+
+    // 斑马线
+    createCrosswalk();
+}
+
+function createCrosswalk() {
+    const stripeWidth = 0.8;
+    const stripeLength = 4;
+    const stripeCount = 5;
+    const stripeMaterial = new THREE.MeshStandardMaterial({
+        color: 0xE8E8E8,
+        roughness: 0.4,
+        metalness: 0.5,
+        emissive: 0x444444,
+        emissiveIntensity: 0.15
+    });
+
+    for (let i = 0; i < stripeCount; i++) {
+        const stripe = new THREE.Mesh(
+            new THREE.PlaneGeometry(stripeWidth, stripeLength),
+            stripeMaterial
+        );
+        stripe.rotation.x = -Math.PI / 2;
+        stripe.position.set(-3 + i * 1.2, 0.02, -6);
+        stripe.receiveShadow = true;
+        scene.add(stripe);
+    }
+}
+
+// ===== 便利店主体 =====
+function createStore() {
+    const storeGroup = new THREE.Group();
+
+    // 便利店主建筑 - 更大的玻璃窗
+    const storeWidth = 6;
+    const storeDepth = 5;
+    const storeHeight = 4;
+
+    // 后墙
+    const backWallGeometry = new THREE.BoxGeometry(storeWidth, storeHeight, 0.2);
+    const wallMaterial = new THREE.MeshStandardMaterial({
+        color: 0xE8E8E8,
+        roughness: 0.8
+    });
+    const backWall = new THREE.Mesh(backWallGeometry, wallMaterial);
+    backWall.position.set(0, storeHeight / 2, -storeDepth / 2);
+    backWall.castShadow = true;
+    backWall.receiveShadow = true;
+    storeGroup.add(backWall);
+
+    // 侧墙（左右各一小段，留出玻璃空间）
+    const sideWallGeometry = new THREE.BoxGeometry(0.2, storeHeight, storeDepth);
+    const leftWall = new THREE.Mesh(sideWallGeometry, wallMaterial);
+    leftWall.position.set(-storeWidth / 2, storeHeight / 2, 0);
+    leftWall.castShadow = true;
+    storeGroup.add(leftWall);
+
+    const rightWall = new THREE.Mesh(sideWallGeometry, wallMaterial);
+    rightWall.position.set(storeWidth / 2, storeHeight / 2, 0);
+    rightWall.castShadow = true;
+    storeGroup.add(rightWall);
+
+    // 大面积玻璃窗 - 前面和侧面
+    const glassMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0x88CCFF,
+        metalness: 0.1,
+        roughness: 0.05,
+        transmission: 0.9,
+        thickness: 0.5,
+        transparent: true,
+        opacity: 0.4,
+        envMapIntensity: 2
+    });
+
+    // 前玻璃窗
+    const frontGlassGeometry = new THREE.BoxGeometry(storeWidth - 0.4, storeHeight - 0.4, 0.05);
+    const frontGlass = new THREE.Mesh(frontGlassGeometry, glassMaterial);
+    frontGlass.position.set(0, storeHeight / 2, storeDepth / 2);
+    storeGroup.add(frontGlass);
+
+    // 玻璃窗框
+    const frameMaterial = new THREE.MeshStandardMaterial({
+        color: 0x2C2C2C,
+        roughness: 0.4,
+        metalness: 0.6
+    });
+
+    // 窗框 - 横向
+    for (let i = 0; i < 3; i++) {
+        const frame = new THREE.Mesh(
+            new THREE.BoxGeometry(storeWidth, 0.08, 0.08),
+            frameMaterial
+        );
+        frame.position.set(0, 0.4 + i * 1.4, storeDepth / 2);
+        storeGroup.add(frame);
+    }
+
+    // 窗框 - 纵向
+    for (let i = 0; i < 4; i++) {
+        const frame = new THREE.Mesh(
+            new THREE.BoxGeometry(0.08, storeHeight, 0.08),
+            frameMaterial
+        );
+        frame.position.set(-storeWidth / 2 + 0.2 + i * 2, storeHeight / 2, storeDepth / 2);
+        storeGroup.add(frame);
+    }
+
+    // 屋顶
+    const roofGeometry = new THREE.BoxGeometry(storeWidth + 0.5, 0.3, storeDepth + 0.5);
+    const roofMaterial = new THREE.MeshStandardMaterial({
+        color: 0x3A3A3A,
+        roughness: 0.7
+    });
+    const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+    roof.position.set(0, storeHeight, 0);
+    roof.castShadow = true;
+    storeGroup.add(roof);
+
+    // 雨棚
+    const awningGeometry = new THREE.BoxGeometry(storeWidth + 1, 0.1, 1.5);
+    const awningMaterial = new THREE.MeshStandardMaterial({
+        color: 0x38BDF8,
+        roughness: 0.6,
+        emissive: 0x38BDF8,
+        emissiveIntensity: 0.2
+    });
+    const awning = new THREE.Mesh(awningGeometry, awningMaterial);
+    awning.position.set(0, storeHeight - 0.5, storeDepth / 2 + 0.7);
+    awning.castShadow = true;
+    storeGroup.add(awning);
+
+    // 便利店内部
+    createStoreInterior(storeGroup, storeWidth, storeDepth, storeHeight);
+
+    // 招牌
+    createStoreSign(storeGroup, storeWidth, storeHeight);
+
+    // 自动门
+    createAutoSlidingDoor(storeGroup, storeDepth);
+
+    storeGroup.position.set(0, 0, 0);
+    scene.add(storeGroup);
+}
+
+function createStoreInterior(parentGroup, width, depth, height) {
+    const interiorGroup = new THREE.Group();
+
+    // 地板
+    const floorGeometry = new THREE.PlaneGeometry(width - 0.3, depth - 0.3);
+    const floorMaterial = new THREE.MeshStandardMaterial({
+        color: 0xF5F5F5,
+        roughness: 0.3
+    });
+    const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+    floor.rotation.x = -Math.PI / 2;
+    floor.position.y = 0.05;
+    interiorGroup.add(floor);
+
+    // 货架系统 - 4排
+    const shelfMaterial = new THREE.MeshStandardMaterial({
+        color: 0xDDDDDD,
+        roughness: 0.6
+    });
+
+    for (let row = 0; row < 2; row++) {
+        for (let i = 0; i < 3; i++) {
+            const shelf = new THREE.Group();
+
+            // 货架主体
+            const shelfBody = new THREE.Mesh(
+                new THREE.BoxGeometry(1.2, 1.8, 0.4),
+                shelfMaterial
+            );
+            shelfBody.position.y = 0.9;
+            shelf.add(shelfBody);
+
+            // 货架层板
+            for (let layer = 0; layer < 4; layer++) {
+                const shelfLayer = new THREE.Mesh(
+                    new THREE.BoxGeometry(1.2, 0.03, 0.42),
+                    new THREE.MeshStandardMaterial({ color: 0xCCCCCC })
+                );
+                shelfLayer.position.y = 0.1 + layer * 0.5;
+                shelf.add(shelfLayer);
+            }
+
+            // 商品（简化表示）
+            const productColors = [0xFF6B6B, 0x4ECDC4, 0xFFE66D, 0x95E1D3, 0xF38181];
+            for (let layer = 0; layer < 4; layer++) {
+                for (let p = 0; p < 6; p++) {
+                    const product = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.15, 0.25, 0.15),
+                        new THREE.MeshStandardMaterial({
+                            color: productColors[Math.floor(Math.random() * productColors.length)],
+                            roughness: 0.4
+                        })
+                    );
+                    product.position.set(
+                        -0.5 + p * 0.18,
+                        0.25 + layer * 0.5,
+                        0
+                    );
+                    shelf.add(product);
+                }
+            }
+
+            shelf.position.set(
+                -width / 2 + 1.2 + i * 1.6,
+                0,
+                -depth / 2 + 1.2 + row * 2
+            );
+            interiorGroup.add(shelf);
+        }
+    }
+
+    // 冷藏柜 - 饮料区
+    const fridgeGroup = new THREE.Group();
+    const fridgeBody = new THREE.Mesh(
+        new THREE.BoxGeometry(2.5, 2, 0.6),
+        new THREE.MeshStandardMaterial({ color: 0xE0E0E0, roughness: 0.3 })
+    );
+    fridgeBody.position.y = 1;
+    fridgeGroup.add(fridgeBody);
+
+    // 玻璃门
+    const fridgeGlass = new THREE.Mesh(
+        new THREE.BoxGeometry(2.4, 1.8, 0.05),
+        new THREE.MeshPhysicalMaterial({
+            color: 0xCCEEFF,
+            metalness: 0,
+            roughness: 0.1,
+            transmission: 0.95,
+            transparent: true
+        })
+    );
+    fridgeGlass.position.set(0, 1, 0.3);
+    fridgeGroup.add(fridgeGlass);
+
+    // 饮料瓶
+    const drinkColors = [0xFF4444, 0x44FF44, 0x4444FF, 0xFFFF44, 0xFF44FF];
+    for (let row = 0; row < 3; row++) {
+        for (let col = 0; col < 8; col++) {
+            const bottle = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.04, 0.04, 0.35, 8),
+                new THREE.MeshStandardMaterial({
+                    color: drinkColors[Math.floor(Math.random() * drinkColors.length)],
+                    roughness: 0.2,
+                    metalness: 0.3
+                })
+            );
+            bottle.position.set(
+                -1 + col * 0.25,
+                0.4 + row * 0.5,
+                0.1
+            );
+            fridgeGroup.add(bottle);
+        }
+    }
+
+    fridgeGroup.position.set(width / 2 - 1.5, 0, -depth / 4);
+    fridgeGroup.rotation.y = Math.PI / 2;
+    interiorGroup.add(fridgeGroup);
+
+    // 收银台
+    createCheckoutCounter(interiorGroup, width, depth);
+
+    // 关东煮柜台
+    createOdenCounter(interiorGroup, width);
+
+    // 内部照明
+    createInteriorLights(interiorGroup, width, depth);
+
+    parentGroup.add(interiorGroup);
+}
+
+function createCheckoutCounter(parentGroup, width, depth) {
+    const counterGroup = new THREE.Group();
+
+    // 柜台主体
+    const counterBody = new THREE.Mesh(
+        new THREE.BoxGeometry(1.5, 1, 0.6),
+        new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.5 })
+    );
+    counterBody.position.y = 0.5;
+    counterGroup.add(counterBody);
+
+    // 柜台面
+    const counterTop = new THREE.Mesh(
+        new THREE.BoxGeometry(1.6, 0.05, 0.7),
+        new THREE.MeshStandardMaterial({ color: 0xA0522D, roughness: 0.3 })
+    );
+    counterTop.position.y = 1;
+    counterGroup.add(counterTop);
+
+    // 收银机
+    const register = new THREE.Mesh(
+        new THREE.BoxGeometry(0.3, 0.25, 0.25),
+        new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.4 })
+    );
+    register.position.set(0, 1.15, 0);
+    counterGroup.add(register);
+
+    // 收银机屏幕
+    const screen = new THREE.Mesh(
+        new THREE.BoxGeometry(0.2, 0.15, 0.02),
+        new THREE.MeshStandardMaterial({
+            color: 0x00FF88,
+            emissive: 0x00FF88,
+            emissiveIntensity: 0.8
+        })
+    );
+    screen.position.set(0, 1.25, 0.12);
+    screen.rotation.x = -0.2;
+    counterGroup.add(screen);
+
+    counterGroup.position.set(-width / 2 + 1, 0, depth / 2 - 1);
+    counterGroup.rotation.y = -Math.PI / 4;
+    parentGroup.add(counterGroup);
+}
+
+function createOdenCounter(parentGroup, width) {
+    const odenGroup = new THREE.Group();
+
+    // 柜台
+    const counter = new THREE.Mesh(
+        new THREE.BoxGeometry(1, 0.8, 0.5),
+        new THREE.MeshStandardMaterial({ color: 0xC0C0C0, roughness: 0.4 })
+    );
+    counter.position.y = 0.4;
+    odenGroup.add(counter);
+
+    // 玻璃罩
+    const glass = new THREE.Mesh(
+        new THREE.BoxGeometry(0.9, 0.4, 0.45),
+        new THREE.MeshPhysicalMaterial({
+            color: 0xFFFFFF,
+            metalness: 0,
+            roughness: 0.1,
+            transmission: 0.9,
+            transparent: true
+        })
+    );
+    glass.position.y = 1;
+    odenGroup.add(glass);
+
+    // 食物容器
+    const containerColors = [0xD2691E, 0xFFDAB9, 0xF4A460];
+    for (let i = 0; i < 6; i++) {
+        const container = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.08, 0.08, 0.15, 12),
+            new THREE.MeshStandardMaterial({
+                color: containerColors[i % 3],
+                roughness: 0.5
+            })
+        );
+        container.position.set(
+            -0.35 + (i % 3) * 0.35,
+            0.88,
+            -0.15 + Math.floor(i / 3) * 0.3
+        );
+        odenGroup.add(container);
+    }
+
+    odenGroup.position.set(width / 2 - 1.2, 0, 0.5);
+    parentGroup.add(odenGroup);
+}
+
+function createInteriorLights(parentGroup, width, depth) {
+    // 顶灯 - 增强亮度
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 2; j++) {
+            const light = new THREE.PointLight(0xFFFFDD, 3.5, 8);
+            light.position.set(
+                -width / 3 + i * width / 3,
+                3.5,
+                -depth / 3 + j * depth / 2
+            );
+            parentGroup.add(light);
+
+            // 灯罩
+            const lampShade = new THREE.Mesh(
+                new THREE.CylinderGeometry(0.15, 0.2, 0.1, 16),
+                new THREE.MeshStandardMaterial({
+                    color: 0xFFFFFF,
+                    emissive: 0xFFFFAA,
+                    emissiveIntensity: 2.0
+                })
+            );
+            lampShade.position.copy(light.position);
+            lampShade.position.y = 3.6;
+            parentGroup.add(lampShade);
+        }
+    }
+
+    // 额外的地面补光
+    const floorLight = new THREE.PointLight(0xFFFFDD, 2, 6);
+    floorLight.position.set(0, 0.5, 0);
+    parentGroup.add(floorLight);
+}
+
+function createStoreSign(parentGroup, width, height) {
+    const signGroup = new THREE.Group();
+
+    // 招牌底板
+    const signBoard = new THREE.Mesh(
+        new THREE.BoxGeometry(width - 0.5, 0.8, 0.15),
+        new THREE.MeshStandardMaterial({
+            color: 0x38BDF8,
+            roughness: 0.5,
+            emissive: 0x38BDF8,
+            emissiveIntensity: 1.0
+        })
+    );
+    signGroup.add(signBoard);
+
+    // 招牌文字背景光 - 增强
+    const signLight = new THREE.PointLight(0x38BDF8, 5, 12);
+    signLight.position.set(0, 0, 0.3);
+    signGroup.add(signLight);
+
+    // 发光文字 "コンビニ" (便利店)
+    const textGeometry = new THREE.BoxGeometry(0.3, 0.5, 0.05);
+    const textMaterial = new THREE.MeshStandardMaterial({
+        color: 0xFFFFFF,
+        emissive: 0xFFFFFF,
+        emissiveIntensity: 2.5
+    });
+
+    const characters = 4;
+    for (let i = 0; i < characters; i++) {
+        const char = new THREE.Mesh(textGeometry, textMaterial);
+        char.position.x = -0.9 + i * 0.6;
+        signGroup.add(char);
+    }
+
+    // "24H" 标识
+    const hourSign = new THREE.Mesh(
+        new THREE.BoxGeometry(0.8, 0.4, 0.05),
+        new THREE.MeshStandardMaterial({
+            color: 0xFFE66D,
+            emissive: 0xFFE66D,
+            emissiveIntensity: 2.0
+        })
+    );
+    hourSign.position.set(width / 2 - 0.8, 0, 0.1);
+    signGroup.add(hourSign);
+
+    signGroup.position.set(0, height + 0.6, 0);
+    parentGroup.add(signGroup);
+
+    // 存储招牌光源以便动画
+    window.signLight = signLight;
+}
+
+function createAutoSlidingDoor(parentGroup, depth) {
+    const doorGroup = new THREE.Group();
+
+    // 门框
+    const frameGeometry = new THREE.BoxGeometry(2.2, 2.6, 0.15);
+    const frameMaterial = new THREE.MeshStandardMaterial({
+        color: 0x404040,
+        roughness: 0.4,
+        metalness: 0.6
+    });
+    const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+    frame.position.y = 1.3;
+    doorGroup.add(frame);
+
+    // 左门
+    const leftDoorGeometry = new THREE.BoxGeometry(1, 2.4, 0.08);
+    const doorMaterial = new THREE.MeshPhysicalMaterial({
+        color: 0xBBDDFF,
+        metalness: 0.1,
+        roughness: 0.1,
+        transmission: 0.7,
+        transparent: true
+    });
+    const leftDoor = new THREE.Mesh(leftDoorGeometry, doorMaterial);
+    leftDoor.position.set(-0.5, 1.3, 0);
+    doorGroup.add(leftDoor);
+
+    // 右门
+    const rightDoor = new THREE.Mesh(leftDoorGeometry, doorMaterial);
+    rightDoor.position.set(0.5, 1.3, 0);
+    doorGroup.add(rightDoor);
+
+    // 门把手
+    const handleMaterial = new THREE.MeshStandardMaterial({
+        color: 0xC0C0C0,
+        roughness: 0.2,
+        metalness: 0.9
+    });
+    const leftHandle = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.02, 0.02, 0.4, 8),
+        handleMaterial
+    );
+    leftHandle.position.set(-0.7, 1.3, 0.05);
+    doorGroup.add(leftHandle);
+
+    const rightHandle = leftHandle.clone();
+    rightHandle.position.set(0.7, 1.3, 0.05);
+    doorGroup.add(rightHandle);
+
+    doorGroup.position.set(1.5, 0, depth / 2);
+    parentGroup.add(doorGroup);
+
+    // 门动画
+    animateDoor(leftDoor, rightDoor);
+}
+
+function animateDoor(leftDoor, rightDoor) {
+    let doorState = 0; // 0-1: 关闭状态
+    let doorDirection = 1;
+    let doorTimer = 0;
+
+    function updateDoor() {
+        doorTimer += 0.016;
+
+        if (doorTimer > 5) { // 每5秒开关一次
+            doorState += doorDirection * 0.02;
+
+            if (doorState >= 1) {
+                doorState = 1;
+                doorDirection = -1;
+            } else if (doorState <= 0) {
+                doorState = 0;
+                doorDirection = 1;
+                doorTimer = 0;
+            }
+
+            leftDoor.position.x = -0.5 - doorState * 0.6;
+            rightDoor.position.x = 0.5 + doorState * 0.6;
+        }
+
+        requestAnimationFrame(updateDoor);
+    }
+    updateDoor();
+}
+
+// ===== 街道元素 =====
+function createStreetElements() {
+    // 自动售货机
+    createVendingMachine();
+
+    // 路灯
+    createStreetLamps();
+
+    // 电线杆和电线
+    createUtilityPoles();
+
+    // 自行车
+    createBicycle();
+
+    // 垃圾桶
+    createTrashCans();
+
+    // 路牌
+    createStreetSigns();
+
+    // 护栏
+    createGuardrails();
+
+    // 空调外机
+    createAirConditioner();
+
+    // 小巷入口
+    createAlleyway();
+
+    // 花坛
+    createPlanter();
+}
+
+function createVendingMachine() {
+    const vmGroup = new THREE.Group();
+
+    // 机身
+    const body = new THREE.Mesh(
+        new THREE.BoxGeometry(1.2, 1.8, 0.8),
+        new THREE.MeshStandardMaterial({
+            color: 0xFF3333,
+            roughness: 0.5,
+            metalness: 0.3
+        })
+    );
+    body.position.y = 0.9;
+    body.castShadow = true;
+    vmGroup.add(body);
+
+    // 玻璃展示区
+    const glassPanel = new THREE.Mesh(
+        new THREE.BoxGeometry(1.1, 1.4, 0.05),
+        new THREE.MeshPhysicalMaterial({
+            color: 0x88CCFF,
+            metalness: 0,
+            roughness: 0.1,
+            transmission: 0.8,
+            transparent: true
+        })
+    );
+    glassPanel.position.set(0, 1, 0.4);
+    vmGroup.add(glassPanel);
+
+    // 饮料格子
+    const drinkColors = [0xFF4444, 0x44FF44, 0x4444FF, 0xFFFF44, 0xFF8844];
+    for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 4; col++) {
+            const drink = new THREE.Mesh(
+                new THREE.BoxGeometry(0.15, 0.2, 0.1),
+                new THREE.MeshStandardMaterial({
+                    color: drinkColors[(row + col) % 5],
+                    roughness: 0.3,
+                    metalness: 0.2
+                })
+            );
+            drink.position.set(
+                -0.4 + col * 0.25,
+                0.4 + row * 0.25,
+                0.35
+            );
+            vmGroup.add(drink);
+        }
+    }
+
+    // 投币口和按钮面板
+    const panel = new THREE.Mesh(
+        new THREE.BoxGeometry(0.3, 0.5, 0.05),
+        new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.3 })
+    );
+    panel.position.set(0.5, 1.2, 0.4);
+    vmGroup.add(panel);
+
+    // 发光按钮
+    for (let i = 0; i < 8; i++) {
+        const button = new THREE.Mesh(
+            new THREE.CircleGeometry(0.025, 16),
+            new THREE.MeshStandardMaterial({
+                color: 0x00FF00,
+                emissive: 0x00FF00,
+                emissiveIntensity: 1.5
+            })
+        );
+        button.position.set(
+            0.45 + (i % 2) * 0.1,
+            0.8 + Math.floor(i / 2) * 0.12,
+            0.42
+        );
+        vmGroup.add(button);
+    }
+
+    // 取物口
+    const slot = new THREE.Mesh(
+        new THREE.BoxGeometry(0.4, 0.15, 0.05),
+        new THREE.MeshStandardMaterial({ color: 0x222222 })
+    );
+    slot.position.set(0, 0.25, 0.4);
+    vmGroup.add(slot);
+
+    // 售货机照明 - 增强
+    const vmLight = new THREE.PointLight(0xFF6666, 3.5, 5);
+    vmLight.position.set(0, 1.5, 0.5);
+    vmGroup.add(vmLight);
+
+    vmGroup.position.set(4, 0, 2);
+    vmGroup.rotation.y = -Math.PI / 6;
+    scene.add(vmGroup);
+
+    window.vendingLight = vmLight;
+}
+
+function createStreetLamps() {
+    const lampPositions = [
+        { x: -6, z: -4 },
+        { x: 6, z: 4 },
+        { x: -4, z: 6 }
+    ];
+
+    lampPositions.forEach(pos => {
+        const lampGroup = new THREE.Group();
+
+        // 灯杆
+        const pole = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.08, 0.1, 5, 8),
+            new THREE.MeshStandardMaterial({
+                color: 0x404040,
+                roughness: 0.7,
+                metalness: 0.5
+            })
+        );
+        pole.position.y = 2.5;
+        pole.castShadow = true;
+        lampGroup.add(pole);
+
+        // 灯罩
+        const lampShade = new THREE.Mesh(
+            new THREE.ConeGeometry(0.3, 0.4, 8),
+            new THREE.MeshStandardMaterial({
+                color: 0x1A1A1A,
+                roughness: 0.5
+            })
+        );
+        lampShade.position.y = 5.2;
+        lampShade.rotation.x = Math.PI;
+        lampGroup.add(lampShade);
+
+        // 光源 - 增强
+        const light = new THREE.PointLight(0xFFDDAA, 4.5, 15);
+        light.position.y = 5;
+        light.castShadow = true;
+        light.shadow.mapSize.width = 512;
+        light.shadow.mapSize.height = 512;
+        lampGroup.add(light);
+
+        // 发光灯泡
+        const bulb = new THREE.Mesh(
+            new THREE.SphereGeometry(0.15, 16, 16),
+            new THREE.MeshStandardMaterial({
+                color: 0xFFFFAA,
+                emissive: 0xFFFFAA,
+                emissiveIntensity: 2.5
+            })
+        );
+        bulb.position.y = 5;
+        lampGroup.add(bulb);
+
+        lampGroup.position.set(pos.x, 0, pos.z);
+        scene.add(lampGroup);
+    });
+}
+
+function createUtilityPoles() {
+    const polePositions = [
+        { x: -7, z: -2 },
+        { x: 7, z: -6 }
+    ];
+
+    polePositions.forEach(pos => {
+        // 电线杆
+        const pole = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.12, 0.15, 6, 8),
+            new THREE.MeshStandardMaterial({
+                color: 0x3A2A1A,
+                roughness: 0.9
+            })
+        );
+        pole.position.set(pos.x, 3, pos.z);
+        pole.castShadow = true;
+        scene.add(pole);
+
+        // 横梁
+        const crossbar = new THREE.Mesh(
+            new THREE.BoxGeometry(1.5, 0.1, 0.1),
+            new THREE.MeshStandardMaterial({ color: 0x2A1A0A })
+        );
+        crossbar.position.set(pos.x, 5.5, pos.z);
+        scene.add(crossbar);
+
+        // 变压器
+        const transformer = new THREE.Mesh(
+            new THREE.BoxGeometry(0.4, 0.5, 0.3),
+            new THREE.MeshStandardMaterial({ color: 0x505050 })
+        );
+        transformer.position.set(pos.x, 4.5, pos.z);
+        scene.add(transformer);
+    });
+
+    // 电线
+    createPowerLines();
+}
+
+function createPowerLines() {
+    const lineMaterial = new THREE.LineBasicMaterial({
+        color: 0x1A1A1A,
+        linewidth: 2
+    });
+
+    const points = [
+        new THREE.Vector3(-7, 5.5, -2),
+        new THREE.Vector3(0, 5.2, 0),
+        new THREE.Vector3(7, 5.5, -6)
+    ];
+
+    const curve = new THREE.CatmullRomCurve3(points);
+    const linePoints = curve.getPoints(50);
+    const geometry = new THREE.BufferGeometry().setFromPoints(linePoints);
+    const line = new THREE.Line(geometry, lineMaterial);
+    scene.add(line);
+}
+
+function createBicycle() {
+    const bikeGroup = new THREE.Group();
+
+    // 车架
+    const frameMaterial = new THREE.MeshStandardMaterial({
+        color: 0x4A90E2,
+        roughness: 0.4,
+        metalness: 0.6
+    });
+
+    // 主车架管
+    const mainFrame = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.025, 0.025, 0.8, 8),
+        frameMaterial
+    );
+    mainFrame.rotation.z = Math.PI / 6;
+    mainFrame.position.set(0, 0.4, 0);
+    bikeGroup.add(mainFrame);
+
+    // 座管
+    const seatPost = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.02, 0.02, 0.4, 8),
+        frameMaterial
+    );
+    seatPost.position.set(-0.3, 0.6, 0);
+    bikeGroup.add(seatPost);
+
+    // 车座
+    const seat = new THREE.Mesh(
+        new THREE.BoxGeometry(0.15, 0.05, 0.25),
+        new THREE.MeshStandardMaterial({ color: 0x1A1A1A })
+    );
+    seat.position.set(-0.3, 0.8, 0);
+    bikeGroup.add(seat);
+
+    // 前叉
+    const fork = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.02, 0.02, 0.5, 8),
+        frameMaterial
+    );
+    fork.rotation.z = -Math.PI / 8;
+    fork.position.set(0.35, 0.3, 0);
+    bikeGroup.add(fork);
+
+    // 车轮
+    const wheelMaterial = new THREE.MeshStandardMaterial({
+        color: 0x2A2A2A,
+        roughness: 0.6
+    });
+
+    // 后轮
+    const rearWheel = new THREE.Mesh(
+        new THREE.TorusGeometry(0.25, 0.03, 16, 32),
+        wheelMaterial
+    );
+    rearWheel.rotation.y = Math.PI / 2;
+    rearWheel.position.set(-0.4, 0.25, 0);
+    bikeGroup.add(rearWheel);
+
+    // 前轮
+    const frontWheel = rearWheel.clone();
+    frontWheel.position.set(0.4, 0.25, 0);
+    bikeGroup.add(frontWheel);
+
+    // 车轮辐条
+    const spokeMaterial = new THREE.MeshStandardMaterial({
+        color: 0xC0C0C0,
+        roughness: 0.3,
+        metalness: 0.8
+    });
+
+    for (let i = 0; i < 8; i++) {
+        const spoke = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.005, 0.005, 0.5, 4),
+            spokeMaterial
+        );
+        spoke.rotation.z = (Math.PI / 4) * i;
+        spoke.position.set(-0.4, 0.25, 0);
+        bikeGroup.add(spoke);
+
+        const spoke2 = spoke.clone();
+        spoke2.position.x = 0.4;
+        bikeGroup.add(spoke2);
+    }
+
+    // 车把
+    const handlebar = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.015, 0.015, 0.4, 8),
+        frameMaterial
+    );
+    handlebar.rotation.z = Math.PI / 2;
+    handlebar.position.set(0.4, 0.65, 0);
+    bikeGroup.add(handlebar);
+
+    // 车篮
+    const basket = new THREE.Mesh(
+        new THREE.BoxGeometry(0.25, 0.15, 0.3),
+        new THREE.MeshStandardMaterial({
+            color: 0x8B7355,
+            roughness: 0.8,
+            wireframe: false
+        })
+    );
+    basket.position.set(0.4, 0.55, 0);
+    bikeGroup.add(basket);
+
+    bikeGroup.position.set(-5, 0, 3);
+    bikeGroup.rotation.y = Math.PI / 3;
+    bikeGroup.castShadow = true;
+    scene.add(bikeGroup);
+}
+
+function createTrashCans() {
+    const trashPositions = [
+        { x: 3.5, z: 4, color: 0x4A90E2 },
+        { x: 3.8, z: 4, color: 0x5FB878 },
+        { x: -6, z: 1, color: 0x808080 }
+    ];
+
+    trashPositions.forEach(pos => {
+        const trashGroup = new THREE.Group();
+
+        // 垃圾桶身
+        const bin = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.2, 0.22, 0.6, 16),
+            new THREE.MeshStandardMaterial({
+                color: pos.color,
+                roughness: 0.7
+            })
+        );
+        bin.position.y = 0.3;
+        bin.castShadow = true;
+        trashGroup.add(bin);
+
+        // 盖子
+        const lid = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.23, 0.2, 0.05, 16),
+            new THREE.MeshStandardMaterial({
+                color: pos.color - 0x111111,
+                roughness: 0.6
+            })
+        );
+        lid.position.y = 0.62;
+        trashGroup.add(lid);
+
+        // 分类标志
+        const label = new THREE.Mesh(
+            new THREE.CircleGeometry(0.08, 16),
+            new THREE.MeshStandardMaterial({
+                color: 0xFFFFFF,
+                roughness: 0.3
+            })
+        );
+        label.rotation.y = Math.PI / 2;
+        label.position.set(0, 0.4, 0.21);
+        trashGroup.add(label);
+
+        trashGroup.position.set(pos.x, 0, pos.z);
+        scene.add(trashGroup);
+    });
+}
+
+function createStreetSigns() {
+    // 路牌 1 - 便利店指示
+    const sign1Group = new THREE.Group();
+
+    const signPole = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.04, 0.04, 2, 8),
+        new THREE.MeshStandardMaterial({ color: 0x505050 })
+    );
+    signPole.position.y = 1;
+    sign1Group.add(signPole);
+
+    const signBoard = new THREE.Mesh(
+        new THREE.BoxGeometry(0.8, 0.3, 0.05),
+        new THREE.MeshStandardMaterial({
+            color: 0x2E7D32,
+            roughness: 0.6
+        })
+    );
+    signBoard.position.y = 2.2;
+    sign1Group.add(signBoard);
+
+    // 反光边框
+    const signBorder = new THREE.Mesh(
+        new THREE.BoxGeometry(0.82, 0.32, 0.03),
+        new THREE.MeshStandardMaterial({
+            color: 0xFFFFFF,
+            emissive: 0xCCCCCC,
+            emissiveIntensity: 0.3
+        })
+    );
+    signBorder.position.set(0, 2.2, -0.01);
+    sign1Group.add(signBorder);
+
+    sign1Group.position.set(-3, 0, -7);
+    scene.add(sign1Group);
+
+    // 路牌 2 - 街道名
+    const sign2Group = new THREE.Group();
+
+    const sign2Pole = signPole.clone();
+    sign2Group.add(sign2Pole);
+
+    const sign2Board = new THREE.Mesh(
+        new THREE.BoxGeometry(1.2, 0.25, 0.05),
+        new THREE.MeshStandardMaterial({
+            color: 0x1565C0,
+            roughness: 0.6
+        })
+    );
+    sign2Board.position.y = 2.2;
+    sign2Group.add(sign2Board);
+
+    sign2Group.position.set(5, 0, -5);
+    sign2Group.rotation.y = Math.PI / 4;
+    scene.add(sign2Group);
+}
+
+function createGuardrails() {
+    const railMaterial = new THREE.MeshStandardMaterial({
+        color: 0xE8E8E8,
+        roughness: 0.5,
+        metalness: 0.4
+    });
+
+    // 护栏段落
+    for (let i = 0; i < 8; i++) {
+        const post = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.04, 0.04, 0.8, 8),
+            railMaterial
+        );
+        post.position.set(-8, 0.4, -6 + i * 0.6);
+        post.castShadow = true;
+        scene.add(post);
+
+        if (i < 7) {
+            const rail = new THREE.Mesh(
+                new THREE.BoxGeometry(0.03, 0.05, 0.6),
+                railMaterial
+            );
+            rail.position.set(-8, 0.6, -5.7 + i * 0.6);
+            scene.add(rail);
+        }
+    }
+
+    // 转角护栏
+    for (let i = 0; i < 6; i++) {
+        const post = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.04, 0.04, 0.8, 8),
+            railMaterial
+        );
+        post.position.set(-8 + i * 0.6, 0.4, -2.5);
+        post.castShadow = true;
+        scene.add(post);
+
+        if (i < 5) {
+            const rail = new THREE.Mesh(
+                new THREE.BoxGeometry(0.6, 0.05, 0.03),
+                railMaterial
+            );
+            rail.position.set(-7.7 + i * 0.6, 0.6, -2.5);
+            scene.add(rail);
+        }
+    }
+}
+
+function createAirConditioner() {
+    const acGroup = new THREE.Group();
+
+    // 外机主体
+    const acBody = new THREE.Mesh(
+        new THREE.BoxGeometry(0.6, 0.4, 0.25),
+        new THREE.MeshStandardMaterial({
+            color: 0xE0E0E0,
+            roughness: 0.6
+        })
+    );
+    acBody.castShadow = true;
+    acGroup.add(acBody);
+
+    // 散热格栅
+    const grillMaterial = new THREE.MeshStandardMaterial({
+        color: 0x404040,
+        roughness: 0.8
+    });
+
+    for (let i = 0; i < 8; i++) {
+        const grill = new THREE.Mesh(
+            new THREE.BoxGeometry(0.55, 0.02, 0.02),
+            grillMaterial
+        );
+        grill.position.set(0, -0.15 + i * 0.04, 0.13);
+        acGroup.add(grill);
+    }
+
+    // 支架
+    const bracket = new THREE.Mesh(
+        new THREE.BoxGeometry(0.7, 0.05, 0.3),
+        new THREE.MeshStandardMaterial({ color: 0x606060 })
+    );
+    bracket.position.y = -0.25;
+    acGroup.add(bracket);
+
+    acGroup.position.set(-3, 2.5, 2.8);
+    scene.add(acGroup);
+}
+
+function createAlleyway() {
+    const alleyGroup = new THREE.Group();
+
+    // 小巷墙壁
+    const wallMaterial = new THREE.MeshStandardMaterial({
+        color: 0xB8B8B8,
+        roughness: 0.9
+    });
+
+    // 左墙
+    const leftWall = new THREE.Mesh(
+        new THREE.BoxGeometry(0.2, 3.5, 4),
+        wallMaterial
+    );
+    leftWall.position.set(-8.5, 1.75, 6);
+    leftWall.castShadow = true;
+    leftWall.receiveShadow = true;
+    alleyGroup.add(leftWall);
+
+    // 右墙
+    const rightWall = new THREE.Mesh(
+        new THREE.BoxGeometry(3, 3.5, 0.2),
+        wallMaterial
+    );
+    rightWall.position.set(-7, 1.75, 8.5);
+    rightWall.castShadow = true;
+    rightWall.receiveShadow = true;
+    alleyGroup.add(rightWall);
+
+    // 小巷地面
+    const alleyFloor = new THREE.Mesh(
+        new THREE.PlaneGeometry(3, 4),
+        new THREE.MeshStandardMaterial({
+            color: 0x2A2A2A,
+            roughness: 0.8
+        })
+    );
+    alleyFloor.rotation.x = -Math.PI / 2;
+    alleyFloor.position.set(-7, 0.01, 6);
+    alleyFloor.receiveShadow = true;
+    alleyGroup.add(alleyFloor);
+
+    // 小巷里的杂物 - 纸箱
+    const boxMaterial = new THREE.MeshStandardMaterial({
+        color: 0xA0826D,
+        roughness: 0.9
+    });
+
+    const box1 = new THREE.Mesh(
+        new THREE.BoxGeometry(0.4, 0.4, 0.4),
+        boxMaterial
+    );
+    box1.position.set(-7.8, 0.2, 6.5);
+    box1.rotation.y = 0.3;
+    box1.castShadow = true;
+    alleyGroup.add(box1);
+
+    const box2 = new THREE.Mesh(
+        new THREE.BoxGeometry(0.3, 0.5, 0.3),
+        boxMaterial
+    );
+    box2.position.set(-7.5, 0.25, 7.2);
+    box2.rotation.y = -0.5;
+    box2.castShadow = true;
+    alleyGroup.add(box2);
+
+    scene.add(alleyGroup);
+}
+
+function createPlanter() {
+    const planterGroup = new THREE.Group();
+
+    // 花盆
+    const pot = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.25, 0.2, 0.3, 16),
+        new THREE.MeshStandardMaterial({
+            color: 0x8B4513,
+            roughness: 0.8
+        })
+    );
+    pot.position.y = 0.15;
+    pot.castShadow = true;
+    planterGroup.add(pot);
+
+    // 泥土
+    const soil = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.24, 0.24, 0.05, 16),
+        new THREE.MeshStandardMaterial({
+            color: 0x4A3C28,
+            roughness: 1
+        })
+    );
+    soil.position.y = 0.3;
+    planterGroup.add(soil);
+
+    // 植物 - 小灌木
+    const leafMaterial = new THREE.MeshStandardMaterial({
+        color: 0x2D5016,
+        roughness: 0.9
+    });
+
+    for (let i = 0; i < 5; i++) {
+        const leaf = new THREE.Mesh(
+            new THREE.SphereGeometry(0.08, 8, 8),
+            leafMaterial
+        );
+        const angle = (Math.PI * 2 * i) / 5;
+        leaf.position.set(
+            Math.cos(angle) * 0.1,
+            0.35 + Math.random() * 0.15,
+            Math.sin(angle) * 0.1
+        );
+        planterGroup.add(leaf);
+    }
+
+    planterGroup.position.set(2, 0, 5);
+    scene.add(planterGroup);
+
+    // 第二个花盆
+    const planter2 = planterGroup.clone();
+    planter2.position.set(-4, 0, 4);
+    scene.add(planter2);
+}
+
+// ===== 照明系统 =====
+function createLighting() {
+    // 环境光 - 增强
+    const ambientLight = new THREE.AmbientLight(0x4A5A7A, 0.8);
+    scene.add(ambientLight);
+
+    // 主方向光（月光）- 增强
+    const moonLight = new THREE.DirectionalLight(0x8BA8C8, 1.2);
+    moonLight.position.set(-10, 20, -10);
+    moonLight.castShadow = true;
+    moonLight.shadow.camera.left = -15;
+    moonLight.shadow.camera.right = 15;
+    moonLight.shadow.camera.top = 15;
+    moonLight.shadow.camera.bottom = -15;
+    moonLight.shadow.camera.near = 0.5;
+    moonLight.shadow.camera.far = 50;
+    moonLight.shadow.mapSize.width = 2048;
+    moonLight.shadow.mapSize.height = 2048;
+    moonLight.shadow.bias = -0.0001;
+    scene.add(moonLight);
+
+    // 便利店主光源 - 大幅增强
+    storeLight = new THREE.PointLight(0xFFE6C7, 8, 18);
+    storeLight.position.set(0, 3, 2);
+    storeLight.castShadow = true;
+    storeLight.shadow.mapSize.width = 1024;
+    storeLight.shadow.mapSize.height = 1024;
+    scene.add(storeLight);
+
+    // 便利店侧面补光
+    const storeSideLight = new THREE.PointLight(0xFFE6C7, 4, 12);
+    storeSideLight.position.set(-3, 3, 0);
+    scene.add(storeSideLight);
+
+    const storeSideLight2 = new THREE.PointLight(0xFFE6C7, 4, 12);
+    storeSideLight2.position.set(3, 3, 0);
+    scene.add(storeSideLight2);
+
+    // 地面反射光 - 增强
+    const groundLight = new THREE.HemisphereLight(0x6B8CAE, 0x2A3545, 0.6);
+    scene.add(groundLight);
+
+    // 额外的填充光
+    const fillLight1 = new THREE.DirectionalLight(0x5A7A9A, 0.5);
+    fillLight1.position.set(10, 10, 10);
+    scene.add(fillLight1);
+
+    const fillLight2 = new THREE.DirectionalLight(0x5A7A9A, 0.5);
+    fillLight2.position.set(-10, 10, 10);
+    scene.add(fillLight2);
+}
+
+// ===== 雨效果 =====
+function createRain() {
+    rainGeometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(settings.rainDensity * 3);
+    const velocities = new Float32Array(settings.rainDensity);
+
+    for (let i = 0; i < settings.rainDensity; i++) {
+        positions[i * 3] = (Math.random() - 0.5) * 40;
+        positions[i * 3 + 1] = Math.random() * 20;
+        positions[i * 3 + 2] = (Math.random() - 0.5) * 40;
+        velocities[i] = 0.1 + Math.random() * 0.15;
+    }
+
+    rainGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    rainGeometry.setAttribute('velocity', new THREE.BufferAttribute(velocities, 1));
+
+    rainMaterial = new THREE.PointsMaterial({
+        color: 0xAADDFF,
+        size: settings.rainSize,
+        transparent: true,
+        opacity: 0.6,
+        blending: THREE.AdditiveBlending
+    });
+
+    rainParticles = new THREE.Points(rainGeometry, rainMaterial);
+    scene.add(rainParticles);
+
+    // 地面积水和反光效果
+    createPuddles();
+
+    // 屋檐滴水点
+    createRoofDrips();
+}
+
+function updateRainDensity(newDensity) {
+    if (rainParticles) {
+        scene.remove(rainParticles);
+        rainGeometry.dispose();
+    }
+
+    settings.rainDensity = newDensity;
+
+    const positions = new Float32Array(settings.rainDensity * 3);
+    const velocities = new Float32Array(settings.rainDensity);
+
+    for (let i = 0; i < settings.rainDensity; i++) {
+        positions[i * 3] = (Math.random() - 0.5) * 40;
+        positions[i * 3 + 1] = Math.random() * 20;
+        positions[i * 3 + 2] = (Math.random() - 0.5) * 40;
+        velocities[i] = 0.1 + Math.random() * 0.15;
+    }
+
+    rainGeometry = new THREE.BufferGeometry();
+    rainGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    rainGeometry.setAttribute('velocity', new THREE.BufferAttribute(velocities, 1));
+
+    rainParticles = new THREE.Points(rainGeometry, rainMaterial);
+    scene.add(rainParticles);
+}
+
+function createPuddles() {
+    // 积水区域
+    const puddlePositions = [
+        { x: -2, z: -3, size: 1.5 },
+        { x: 4, z: 1, size: 1.2 },
+        { x: -5, z: 4, size: 1.8 },
+        { x: 1, z: -5, size: 1.0 }
+    ];
+
+    puddlePositions.forEach(puddle => {
+        const puddleGeometry = new THREE.CircleGeometry(puddle.size, 32);
+        const puddleMaterial = new THREE.MeshStandardMaterial({
+            color: 0x1A2030,
+            roughness: 0.1,
+            metalness: 0.9,
+            transparent: true,
+            opacity: 0.7,
+            envMapIntensity: 2
+        });
+
+        const puddleMesh = new THREE.Mesh(puddleGeometry, puddleMaterial);
+        puddleMesh.rotation.x = -Math.PI / 2;
+        puddleMesh.position.set(puddle.x, 0.03, puddle.z);
+        puddleMesh.receiveShadow = true;
+        scene.add(puddleMesh);
+
+        // 积水波纹动画
+        animatePuddle(puddleMesh);
+    });
+}
+
+function animatePuddle(puddleMesh) {
+    const originalScale = puddleMesh.scale.clone();
+    let time = Math.random() * Math.PI * 2;
+
+    function updatePuddle() {
+        time += 0.02;
+        const ripple = Math.sin(time * 2) * 0.05;
+        puddleMesh.scale.set(
+            originalScale.x * (1 + ripple),
+            originalScale.y,
+            originalScale.z * (1 + ripple)
+        );
+        puddleMesh.material.opacity = 0.6 + Math.sin(time) * 0.1;
+        requestAnimationFrame(updatePuddle);
+    }
+    updatePuddle();
+}
+
+function createRoofDrips() {
+    // 屋檐滴水粒子系统
+    const dripCount = 30;
+    const dripGeometry = new THREE.BufferGeometry();
+    const dripPositions = new Float32Array(dripCount * 3);
+
+    for (let i = 0; i < dripCount; i++) {
+        dripPositions[i * 3] = -3 + (i / dripCount) * 7;
+        dripPositions[i * 3 + 1] = 4;
+        dripPositions[i * 3 + 2] = 3.2;
+    }
+
+    dripGeometry.setAttribute('position', new THREE.BufferAttribute(dripPositions, 3));
+
+    const dripMaterial = new THREE.PointsMaterial({
+        color: 0xCCEEFF,
+        size: 0.1,
+        transparent: true,
+        opacity: 0.8
+    });
+
+    const dripParticles = new THREE.Points(dripGeometry, dripMaterial);
+    scene.add(dripParticles);
+
+    // 滴水动画
+    animateRoofDrips(dripParticles);
+}
+
+function animateRoofDrips(dripParticles) {
+    const positions = dripParticles.geometry.attributes.position.array;
+    const originalY = [];
+
+    for (let i = 0; i < positions.length / 3; i++) {
+        originalY.push(positions[i * 3 + 1]);
+    }
+
+    function updateDrips() {
+        for (let i = 0; i < positions.length / 3; i++) {
+            positions[i * 3 + 1] -= 0.08;
+
+            if (positions[i * 3 + 1] < 0.1) {
+                positions[i * 3 + 1] = originalY[i] + Math.random() * 0.5;
+            }
+        }
+
+        dripParticles.geometry.attributes.position.needsUpdate = true;
+        requestAnimationFrame(updateDrips);
+    }
+    updateDrips();
+}
+
+// ===== 大气效果 =====
+function createAtmosphere() {
+    // 雾气粒子
+    const fogParticleCount = 100;
+    const fogGeometry = new THREE.BufferGeometry();
+    const fogPositions = new Float32Array(fogParticleCount * 3);
+
+    for (let i = 0; i < fogParticleCount; i++) {
+        fogPositions[i * 3] = (Math.random() - 0.5) * 30;
+        fogPositions[i * 3 + 1] = Math.random() * 3;
+        fogPositions[i * 3 + 2] = (Math.random() - 0.5) * 30;
+    }
+
+    fogGeometry.setAttribute('position', new THREE.BufferAttribute(fogPositions, 3));
+
+    const fogMaterial = new THREE.PointsMaterial({
+        color: 0x4A5A6A,
+        size: 1.5,
+        transparent: true,
+        opacity: 0.15,
+        blending: THREE.NormalBlending,
+        depthWrite: false
+    });
+
+    const fogParticles = new THREE.Points(fogGeometry, fogMaterial);
+    scene.add(fogParticles);
+
+    // 雾气漂移动画
+    animateFog(fogParticles);
+
+    // 远处建筑剪影
+    createDistantBuildings();
+}
+
+function animateFog(fogParticles) {
+    const positions = fogParticles.geometry.attributes.position.array;
+
+    function updateFog() {
+        for (let i = 0; i < positions.length / 3; i++) {
+            positions[i * 3] += Math.sin(Date.now() * 0.0001 + i) * 0.01;
+            positions[i * 3 + 2] += Math.cos(Date.now() * 0.0001 + i) * 0.01;
+
+            // 边界循环
+            if (Math.abs(positions[i * 3]) > 15) {
+                positions[i * 3] *= -0.9;
+            }
+            if (Math.abs(positions[i * 3 + 2]) > 15) {
+                positions[i * 3 + 2] *= -0.9;
+            }
+        }
+
+        fogParticles.geometry.attributes.position.needsUpdate = true;
+        requestAnimationFrame(updateFog);
+    }
+    updateFog();
+}
+
+function createDistantBuildings() {
+    const buildingMaterial = new THREE.MeshStandardMaterial({
+        color: 0x0F1318,
+        roughness: 0.9,
+        transparent: true,
+        opacity: 0.6
+    });
+
+    const buildingData = [
+        { x: -15, z: -12, w: 4, h: 8, d: 3 },
+        { x: -18, z: -10, w: 3, h: 12, d: 3 },
+        { x: 15, z: -15, w: 5, h: 10, d: 4 },
+        { x: 18, z: -12, w: 3, h: 15, d: 3 },
+        { x: -12, z: 15, w: 4, h: 9, d: 3 },
+        { x: 12, z: 14, w: 3.5, h: 11, d: 3 }
+    ];
+
+    buildingData.forEach(data => {
+        const building = new THREE.Mesh(
+            new THREE.BoxGeometry(data.w, data.h, data.d),
+            buildingMaterial
+        );
+        building.position.set(data.x, data.h / 2, data.z);
+        building.castShadow = true;
+        scene.add(building);
+
+        // 建筑窗户灯光
+        const windowCount = Math.floor(data.h / 1.5) * Math.floor(data.w / 1);
+        for (let i = 0; i < windowCount; i++) {
+            if (Math.random() > 0.6) {
+                const windowLight = new THREE.PointLight(
+                    0xFFE6AA,
+                    0.3,
+                    2
+                );
+                const row = Math.floor(i / Math.floor(data.w / 1));
+                const col = i % Math.floor(data.w / 1);
+                windowLight.position.set(
+                    data.x - data.w / 2 + col * 1 + 0.5,
+                    1 + row * 1.5,
+                    data.z
+                );
+                scene.add(windowLight);
+
+                // 窗户发光面
+                const windowGlow = new THREE.Mesh(
+                    new THREE.PlaneGeometry(0.3, 0.4),
+                    new THREE.MeshStandardMaterial({
+                        color: 0xFFE6AA,
+                        emissive: 0xFFE6AA,
+                        emissiveIntensity: 0.6,
+                        transparent: true,
+                        opacity: 0.8
+                    })
+                );
+                windowGlow.position.copy(windowLight.position);
+                windowGlow.position.z += data.d / 2 + 0.01;
+                scene.add(windowGlow);
+            }
+        }
+    });
+}
+
+// ===== 动画循环 =====
+function animate() {
+    requestAnimationFrame(animate);
+
+    // FPS 限制
+    const currentTime = performance.now();
+    const deltaTime = currentTime - lastFrameTime;
+    const targetFrameTime = 1000 / settings.targetFPS;
+
+    if (deltaTime < targetFrameTime - 1) {
+        return;
+    }
+
+    lastFrameTime = currentTime - (deltaTime % targetFrameTime);
+
+    // FPS 计算
+    frameCount++;
+    if (currentTime - fpsUpdateTime >= 1000) {
+        currentFPS = Math.round((frameCount * 1000) / (currentTime - fpsUpdateTime));
+        document.getElementById('actual-fps').textContent = currentFPS;
+        frameCount = 0;
+        fpsUpdateTime = currentTime;
+    }
+
+    // 更新控制器
+    controls.update();
+
+    // 雨滴下落动画
+    if (rainParticles && rainGeometry) {
+        const positions = rainGeometry.attributes.position.array;
+        const velocities = rainGeometry.attributes.velocity.array;
+
+        for (let i = 0; i < positions.length / 3; i++) {
+            positions[i * 3 + 1] -= velocities[i] * settings.rainSpeed;
+
+            // 重置雨滴
+            if (positions[i * 3 + 1] < 0) {
+                positions[i * 3 + 1] = 15 + Math.random() * 5;
+                positions[i * 3] = (Math.random() - 0.5) * 40;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 40;
+            }
+        }
+
+        rainGeometry.attributes.position.needsUpdate = true;
+    }
+
+    // 灯光闪烁效果
+    timeOfDay += 0.01;
+    if (window.signLight) {
+        window.signLight.intensity = (5 + Math.sin(timeOfDay * 3) * 0.5) * settings.lightIntensity;
+    }
+    if (window.vendingLight) {
+        window.vendingLight.intensity = (3.5 + Math.sin(timeOfDay * 5) * 0.3) * settings.lightIntensity;
+    }
+    if (storeLight) {
+        storeLight.intensity = (8 + Math.sin(timeOfDay * 2) * 0.5) * settings.lightIntensity;
+    }
+
+    // 渲染
+    renderer.render(scene, camera);
+}
+
+// ===== 控制面板 =====
+function setupControlPanel() {
+    // 切换面板显示
+    const toggleButton = document.getElementById('toggle-panel');
+    const controlPanel = document.getElementById('control-panel');
+    let panelVisible = true;
+
+    toggleButton.addEventListener('click', () => {
+        panelVisible = !panelVisible;
+        controlPanel.classList.toggle('hidden', !panelVisible);
+        toggleButton.textContent = panelVisible ? '⚙' : '☰';
+    });
+
+    // FPS 控制
+    const fpsSlider = document.getElementById('fps-slider');
+    const fpsValue = document.getElementById('fps-value');
+    fpsSlider.addEventListener('input', (e) => {
+        settings.targetFPS = parseInt(e.target.value);
+        fpsValue.textContent = settings.targetFPS + ' FPS';
+    });
+
+    // 雨滴密度
+    const rainSlider = document.getElementById('rain-slider');
+    const rainValue = document.getElementById('rain-value');
+    rainSlider.addEventListener('input', (e) => {
+        const newDensity = parseInt(e.target.value);
+        rainValue.textContent = newDensity;
+        updateRainDensity(newDensity);
+    });
+
+    // 雨滴大小
+    const rainSizeSlider = document.getElementById('rain-size-slider');
+    const rainSizeValue = document.getElementById('rain-size-value');
+    rainSizeSlider.addEventListener('input', (e) => {
+        settings.rainSize = parseFloat(e.target.value);
+        rainSizeValue.textContent = settings.rainSize.toFixed(2);
+        if (rainMaterial) {
+            rainMaterial.size = settings.rainSize;
+        }
+    });
+
+    // 雨滴速度
+    const rainSpeedSlider = document.getElementById('rain-speed-slider');
+    const rainSpeedValue = document.getElementById('rain-speed-value');
+    rainSpeedSlider.addEventListener('input', (e) => {
+        settings.rainSpeed = parseFloat(e.target.value);
+        rainSpeedValue.textContent = settings.rainSpeed.toFixed(1) + 'x';
+    });
+
+    // 阴影质量
+    const shadowButtons = document.querySelectorAll('[data-shadow]');
+    const shadowValue = document.getElementById('shadow-value');
+    const shadowQualityMap = { 512: '低', 1024: '中', 2048: '高', 4096: '超高' };
+
+    shadowButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            shadowButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            const quality = parseInt(button.dataset.shadow);
+            settings.shadowQuality = quality;
+            shadowValue.textContent = shadowQualityMap[quality];
+
+            // 更新所有阴影贴图大小
+            updateShadowQuality(quality);
+        });
+    });
+
+    // 光照强度
+    const lightSlider = document.getElementById('light-slider');
+    const lightValue = document.getElementById('light-value');
+    lightSlider.addEventListener('input', (e) => {
+        settings.lightIntensity = parseInt(e.target.value) / 100;
+        lightValue.textContent = e.target.value + '%';
+        updateLightIntensity();
+    });
+
+    // 雾气浓度
+    const fogSlider = document.getElementById('fog-slider');
+    const fogValue = document.getElementById('fog-value');
+    fogSlider.addEventListener('input', (e) => {
+        settings.fogDensity = parseInt(e.target.value) / 100;
+        fogValue.textContent = e.target.value + '%';
+        updateFogDensity();
+    });
+
+    // 渲染分辨率
+    const resolutionSlider = document.getElementById('resolution-slider');
+    const resolutionValue = document.getElementById('resolution-value');
+    resolutionSlider.addEventListener('input', (e) => {
+        settings.pixelRatio = parseInt(e.target.value) / 100;
+        resolutionValue.textContent = e.target.value + '%';
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2) * settings.pixelRatio);
+    });
+
+    // 抗锯齿
+    const aaButtons = document.querySelectorAll('[data-aa]');
+    aaButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            aaButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            const aaEnabled = button.dataset.aa === 'on';
+            settings.antialiasing = aaEnabled;
+
+            // 重新创建渲染器需要刷新页面
+            if (confirm('更改抗锯齿设置需要刷新页面，是否继续？')) {
+                location.reload();
+            } else {
+                // 恢复之前的状态
+                aaButtons.forEach(btn => {
+                    if ((btn.dataset.aa === 'on') === settings.antialiasing) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+        });
+    });
+
+    // 重置按钮
+    const resetButton = document.getElementById('reset-button');
+    resetButton.addEventListener('click', () => {
+        if (confirm('确定要重置所有设置为默认值吗？')) {
+            location.reload();
+        }
+    });
+}
+
+function updateShadowQuality(quality) {
+    scene.traverse((object) => {
+        if (object.isLight && object.castShadow) {
+            object.shadow.mapSize.width = quality;
+            object.shadow.mapSize.height = quality;
+            object.shadow.map?.dispose();
+            object.shadow.map = null;
+        }
+    });
+}
+
+function updateLightIntensity() {
+    scene.traverse((object) => {
+        if (object.isLight) {
+            // 保存原始强度比例
+            if (!object.userData.originalIntensity) {
+                object.userData.originalIntensity = object.intensity;
+            }
+            object.intensity = object.userData.originalIntensity * settings.lightIntensity;
+        }
+    });
+
+    if (storeLight) {
+        if (!storeLight.userData.originalIntensity) {
+            storeLight.userData.originalIntensity = 8;
+        }
+        storeLight.intensity = storeLight.userData.originalIntensity * settings.lightIntensity;
+    }
+}
+
+function updateFogDensity() {
+    if (scene.fog) {
+        const baseFar = 45;
+        scene.fog.far = baseFar / settings.fogDensity;
+    }
+}
+
+// ===== 窗口调整 =====
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+// ===== 启动 =====
+init();
+    </script>
+</body>
+</html>
+    </script>
+</body>
+</html>
