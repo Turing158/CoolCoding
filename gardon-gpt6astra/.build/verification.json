@@ -1,0 +1,77 @@
+{
+  "artifact": "../index.html",
+  "date": "2026-09-14",
+  "threeRevision": "160",
+  "delivery": "One HTML file; no external scripts, styles, fonts, images, models, or network requests required.",
+  "browser": "Codex in-app browser, local HTTP preview",
+  "directFileNavigation": "Not tested: the in-app browser URL policy blocks file:// navigation. No attempt was made to bypass that policy.",
+  "rendering": {
+    "testFpsCap": 12,
+    "observedFpsDuringAnimation": "11.3–11.6",
+    "fullSpeedStressTestPerformed": false,
+    "finalPreviewPaused": true,
+    "externalResourceRequestsObserved": 0,
+    "finalShaderOrRuntimeErrors": 0
+  },
+  "verifiedInteractions": [
+    "All three physical 3D knobs, through actual pointer dragging and ray picking",
+    "Spring to summer transition through the season button",
+    "Autumn to winter transition through the physical season knob while paused",
+    "Winter boat docking before full lake freeze",
+    "Space pauses year, day, actors, particles and rendering; frame counter remains unchanged while idle",
+    "Orbit dragging and scroll zoom work while time is paused",
+    "Top view and return-to-window camera controls",
+    "Clean view, inert hidden controls, and Escape return",
+    "About dialog and Escape close",
+    "Procedural ambient audio on/off; audio left off"
+  ],
+  "visualChecks": [
+    "spring",
+    "summer",
+    "autumn",
+    "winter",
+    "winter night",
+    "1440 × 900 desktop",
+    "390 × 844 mobile",
+    "default app viewport"
+  ],
+  "continuity": {
+    "periodSeconds": 480,
+    "solarPeriodSeconds": 120,
+    "seasonalParameterCount": 18,
+    "samplesAcrossYear": 28800,
+    "maxValueSeamError": 3.552713678800501e-15,
+    "maxVelocitySeamError": 4.440892098500626e-9,
+    "plantInstances": 7363,
+    "snowInstances": 1294,
+    "pooledParticleCapacity": 1652,
+    "seasonChangeCreatesOrDestroysInstances": false
+  },
+  "constraints": {
+    "walkRouteSamples": 2000,
+    "walkErrors": 0,
+    "boatHullCornerSamples": 32000,
+    "boatShoreIslandAndDockErrors": 0
+  },
+  "cameraControls": {
+    "radiusRange": [
+      4,
+      36
+    ],
+    "maximumMagnificationComparedToPrevious": 4,
+    "zoomTowardCursor": true,
+    "rightDrag": "Smooth ground-plane translation aligned with the screen; bounded to the desk",
+    "browserChecks": [
+      "Wheel reaches a clear lake close-up at radius 4",
+      "Shift-arrow pan changes the target without changing the viewing angle",
+      "Left drag still orbits",
+      "Right click does not open the scene context menu",
+      "Reset restores camera framing and center"
+    ],
+    "pointerVerification": "Actual right-button pointer handlers also exercised in a CPU-only event harness because the browser tool exposes left-button drag only; verified pan projection, knob isolation, zoom limits, pointer cleanup, paused settling, bounds, and reset without creating WebGL contexts.",
+    "testFpsCap": 12,
+    "totalRenderedFramesAfterChecks": 72,
+    "finalPreviewPaused": true,
+    "consoleWarningsOrErrors": 0
+  }
+}

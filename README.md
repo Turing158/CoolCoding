@@ -8,7 +8,7 @@
 
 ## 项目总览
 
-当前收录两个主题，共 5 个模型版本：
+当前收录三个主题，共 6 个模型版本：
 
 | 主题 | 文件夹 | 模型标识 | 在线预览 |
 | --- | --- | --- | --- |
@@ -17,8 +17,9 @@
 | `shop-rainning` | `shop-rainning-glm53f/` | `glm53f` | [在线预览](https://sendbox-shop-rainning-glm53f.starfall.cc.cd) |
 | `shop-rainning` | `shop-rainning-gpt6astra/` | `gpt6astra` | [在线预览](https://sendbox-shop-rainning-gpt6astra.starfall.cc.cd) |
 | `shop-rainning` | `shop-rainning-opus5/` | `opus5` | [在线预览](https://sendbox-shop-rainning-opus5.starfall.cc.cd) |
+| `gardon` | `gardon-gpt6astra/` | `gpt6astra` | [在线预览](https://sendbox-gardon-gpt6astra.starfall.cc.cd) |
 
-目录名称中的后缀用于区分生成时使用的模型版本。`shop-rainning` 是当前文件夹名称，暂时保留原拼写。
+目录名称中的后缀用于区分生成时使用的模型版本。`shop-rainning` 与 `gardon` 是当前文件夹名称，暂时保留原拼写；其中 `gardon-gpt6astra` 的展示标题为“湖畔花园的四季来信”。
 
 ### 目录结构
 
@@ -29,12 +30,19 @@
 ├── shop-rainning-glm53f/
 ├── shop-rainning-gpt6astra/
 ├── shop-rainning-opus5/
+├── gardon-gpt6astra/
 └── README.md
 ```
 
+### `gardon-gpt6astra` · 湖畔花园的四季来信
+
+这是一个离线单文件 Three.js r160 体素花园：场景摆在窗边的木质桌面上，包含湖泊、小岛、书屋、玻璃温室、咖啡屋、桥、人物和小船。时间会独立推动四季与昼夜，春花、夏叶、秋雾、冬雪和结冰湖面会平滑过渡；小船会在湖面结冰前靠岸，解冻后重新出航。
+
+场景支持左键环视、右键平移、滚轮缩放、俯瞰与纯净观景模式，并提供暂停时间、四季进度、流年速度和天气强度控制。所有几何体、材质、贴图、环境音和动画均由代码生成，验证构建无外部资源请求；默认四季循环约 8 分钟，也可切换节能模式或开启合成环境音。
+
 ## 提示词记录
 
-当前记录两个主题提示词。以下代码块保留实际使用的提示词原文；如后续存在多轮提示词，也可以继续追加代码块并注明用途。
+当前记录两个主题的原始提示词。新增的 `gardon-gpt6astra` 目录没有随项目保留原始 prompt，因此这里只记录成品信息，不将反推摘要冒充为提示词原文。
 
 ### `building`
 
