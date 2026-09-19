@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f3f1e9" />
+    <meta name="description" content="层间 · 一座装进透明盒子的积木小城。自由探索车库、街区、电车与屋顶花园里的四层日常。" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <title>层间 STACKED · 一盒小城，四层日常</title>
+  </head>
+  <body>
+    <div id="app">
+      <div id="scene" role="region" aria-label="可交互的四层乐高积木沙盘"></div>
+
+      <header class="topbar ui">
+        <a class="brand" href="./" aria-label="层间首页">
+          <span class="brand-mark"><svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="m4 11 12-6 12 6v13l-12 6L4 24Z" fill="currentColor"/><path d="m4 11 12 6 12-6M16 17v13" stroke="#f9f5eb" stroke-width="1.5"/><ellipse cx="12" cy="8.5" rx="3" ry="1.7" fill="#ed957c"/><ellipse cx="21" cy="12" rx="3" ry="1.7" fill="#ed957c"/></svg></span>
+          <span class="brand-word">层间<span>STACKED</span></span>
+          <span class="brand-divider"></span><span class="brand-note">小小世界，层层有趣。</span>
+        </a>
+        <div class="header-actions"><span class="edition">BRICK STUDY <span>—</span> 004</span><button class="icon-button" id="panel-toggle" aria-label="显示或收起场景控制" aria-expanded="true" aria-controls="control-panel" title="场景控制"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 17h16M8 4v6m8 4v6"/></svg></button></div>
+      </header>
+
+      <aside class="editorial ui" aria-label="场景介绍与楼层导览">
+        <div class="eyebrow"><span></span> A LITTLE WORLD, LAYER BY LAYER</div>
+        <h1>一盒小城，<br />四层<span class="title-accent">日常。</span></h1>
+        <p class="intro">把那些平凡又可爱的瞬间，<br />一块一块，搭进透明的世界里。</p>
+        <div class="tiny-bricks" aria-hidden="true"><i></i><i></i><i></i></div>
+        <nav class="floor-nav" aria-label="楼层导览">
+          <div class="section-label">探索小城 <span>EXPLORE THE LAYERS</span></div>
+          <button class="floor-button overview active" data-floor="all" aria-pressed="true"><span class="floor-icon"><svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/></svg></span><span class="floor-name">完整小世界<small>每一层，都有故事</small></span><span class="floor-arrow">↗</span></button>
+          <button class="floor-button" data-floor="3" aria-pressed="false" style="--floor-color:#69844c"><span class="floor-number">04</span><span class="floor-name">云上花园<small>ROOFTOP GARDEN</small></span><span class="floor-dot"></span></button>
+          <button class="floor-button" data-floor="2" aria-pressed="false" style="--floor-color:#c7723d"><span class="floor-number">03</span><span class="floor-name">电车慢时光<small>THE TRAM STOP</small></span><span class="floor-dot"></span></button>
+          <button class="floor-button" data-floor="1" aria-pressed="false" style="--floor-color:#a8804e"><span class="floor-number">02</span><span class="floor-name">转角好天气<small>THE LITTLE TOWN</small></span><span class="floor-dot"></span></button>
+          <button class="floor-button" data-floor="0" aria-pressed="false" style="--floor-color:#a85c53"><span class="floor-number">01</span><span class="floor-name">车库进行时<small>THE BUSY GARAGE</small></span><span class="floor-dot"></span></button>
+        </nav>
+      </aside>
+
+      <aside id="control-panel" class="control-panel ui" aria-label="场景控制">
+        <div class="panel-heading"><div><svg viewBox="0 0 24 24"><path d="M4 7h16M4 17h16M8 4v6m8 4v6"/></svg><h2>场景控制</h2></div><span class="live-label"><i></i><span id="live-state">LIVE</span></span></div>
+        <div class="panel-content">
+          <div class="setting-label">画质预设 <span id="preset-note">流畅与细节，刚刚好</span></div>
+          <div class="segments" role="group" aria-label="画质预设"><button data-preset="eco" aria-pressed="false">节能</button><button data-preset="balanced" class="selected" aria-pressed="true">平衡</button><button data-preset="fine" aria-pressed="false">精细</button></div>
+          <div class="control-row fps-row"><label for="fps">帧率上限</label><select id="fps" aria-label="帧率上限"><option value="6">6 FPS · 实测</option><option value="12">12 FPS</option><option value="24">24 FPS</option><option value="30">30 FPS</option><option value="45">45 FPS</option><option value="60" selected>60 FPS</option></select></div>
+          <div class="control-slider"><div class="setting-label"><label for="detail">积木细节</label><output for="detail" id="detail-value">丰富</output></div><input id="detail" type="range" min="0" max="2" step="1" value="2" /><div class="range-captions"><span>简约</span><span>标准</span><span>丰富</span></div></div>
+          <div class="panel-divider"></div>
+          <div class="control-slider"><div class="setting-label"><label for="glass">外壳透明度</label><output for="glass" id="glass-value">88%</output></div><input id="glass" type="range" min="65" max="100" step="1" value="88" /></div>
+          <div class="control-slider"><div class="setting-label"><label for="explode">楼层展开</label><output for="explode" id="explode-value">0%</output></div><input id="explode" type="range" min="0" max="100" step="1" value="0" /></div>
+          <div class="control-slider"><div class="setting-label"><label for="speed">小城节奏</label><output for="speed" id="speed-value">1.0×</output></div><input id="speed" type="range" min="0.25" max="1.75" step="0.25" value="1" /></div>
+          <div class="panel-divider"></div>
+          <label class="toggle-row" for="shell"><span>透明展示外壳</span><input type="checkbox" id="shell" checked /><span class="switch" aria-hidden="true"></span></label>
+          <label class="toggle-row" for="particles"><span>漂浮花粉<small>一点轻盈的生命力</small></span><input type="checkbox" id="particles" checked /><span class="switch" aria-hidden="true"></span></label>
+          <label class="toggle-row" for="shadows"><span>柔和阴影</span><input type="checkbox" id="shadows" checked /><span class="switch" aria-hidden="true"></span></label>
+          <label class="toggle-row" for="rotate"><span>自动环视</span><input type="checkbox" id="rotate" /><span class="switch" aria-hidden="true"></span></label>
+          <label class="toggle-row solo-row" for="solo"><span>只看所选楼层</span><input type="checkbox" id="solo" /><span class="switch" aria-hidden="true"></span></label>
+        </div>
+        <div class="performance"><span><i id="performance-dot"></i><b id="actual-fps">—</b> <span id="fps-unit">FPS</span></span><span id="render-info">正在搭建小城</span></div>
+      </aside>
+
+      <div class="scene-label ui"><span class="scene-label-line"></span><span id="scene-caption">四个小世界，住在同一段好时光里。</span><span class="scene-label-line"></span></div>
+      <div class="toolbar ui" role="toolbar" aria-label="观景工具">
+        <button id="pause" class="toolbar-button" title="暂停或继续 · 空格键" aria-label="暂停小城" aria-pressed="false"><svg id="pause-icon" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg><span id="pause-text">暂停时光</span></button><span class="toolbar-divider"></span>
+        <button id="reset" class="toolbar-button" title="复位视角 · R" aria-label="复位视角"><svg viewBox="0 0 24 24"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6"/></svg><span>复位</span></button>
+        <button id="capture" class="toolbar-button" title="保存当前画面" aria-label="保存沙盘图片"><svg viewBox="0 0 24 24"><path d="M4 6h4l2-3h4l2 3h4v14H4V6Z"/><circle cx="12" cy="12" r="4"/></svg><span>留影</span></button>
+        <button id="zen" class="toolbar-button" title="纯净观景 · H" aria-label="进入纯净观景"><svg viewBox="0 0 24 24"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></svg><span>纯净</span></button>
+      </div>
+      <button id="exit-zen" class="exit-zen" hidden aria-label="退出纯净观景">返回小城 <span>ESC</span></button>
+
+      <footer class="footer ui"><div class="footer-note"><span class="little-cross">✳</span> SMALL BRICKS. BIG LITTLE STORIES.</div><div class="interaction-hints"><span><svg viewBox="0 0 20 20"><rect x="5" y="2" width="10" height="16" rx="5"/><path d="M10 2v6H5"/></svg>左键旋转</span><span><svg viewBox="0 0 20 20"><rect x="5" y="2" width="10" height="16" rx="5"/><path d="M10 2v6h5"/></svg>右键平移</span><span><svg viewBox="0 0 20 20"><path d="m7 5 3-3 3 3M10 2v16m-3-3 3 3 3-3"/></svg>滚轮探索细节</span></div><span class="footer-index">MADE OF LITTLE MOMENTS <b>© 2026</b></span></footer>
+
+      <div id="loading" class="loading" role="status"><div class="loading-brick"><i></i><i></i></div><span>一块一块，搭起小世界。</span></div>
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+      <dialog id="photo-dialog" class="photo-dialog" aria-labelledby="photo-title">
+        <div class="photo-heading"><div><span>A LITTLE MOMENT</span><h2 id="photo-title">把这一刻，收进口袋。</h2></div><button id="photo-close" class="icon-button" aria-label="关闭留影预览"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div>
+        <img id="photo-preview" alt="刚刚记录的积木小城画面" />
+        <div class="photo-footer"><span>小城已定格，好时光可以收藏。</span><a id="photo-download" class="photo-save" download>保存 PNG <svg viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg></a></div>
+      </dialog>
+      <div id="error" class="error-card" hidden role="alert"><h2>小城暂时没有搭起来</h2><p id="error-message"></p><button onclick="location.reload()">重新加载</button></div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

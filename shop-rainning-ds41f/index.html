@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="description" content="雨夜便利店街角 —— 三渲二风格的微缩三维场景模型" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230b1220'/%3E%3Crect x='5' y='12' width='22' height='15' rx='2' fill='%23187a4f'/%3E%3Crect x='8' y='17' width='16' height='10' fill='%23ffd9a0'/%3E%3C/svg%3E"
+    />
+    <title>雨夜便利店街角 · 微缩模型</title>
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="scene"></canvas>
+
+      <!-- 诊断用：任何脚本错误都会被记录下来，便于无头浏览器读取 -->
+      <pre id="diag" hidden></pre>
+
+      <!-- 场景内没有任何 UI 元素；以下设置面板仅作为可折叠的工具条悬浮于画面之上 -->
+      <div id="ui-root" class="ui-collapsed" aria-hidden="false">
+        <button id="ui-toggle" class="ui-toggle" type="button" title="展开 / 收起设置">
+          <span class="ui-toggle-icon"></span>
+          <span class="ui-toggle-label">设置</span>
+        </button>
+
+        <div class="ui-panel" role="group" aria-label="场景设置">
+          <header class="ui-head">
+            <h1>雨夜便利店 · 设置</h1>
+            <p class="ui-sub">拖拽旋转 · 滚轮缩放 · 右键平移</p>
+          </header>
+
+          <section class="ui-group">
+            <h2>性能</h2>
+            <label class="ui-row" for="fpsLimit">
+              <span>帧率上限</span>
+              <b id="fpsLimitVal">40 FPS</b>
+            </label>
+            <input id="fpsLimit" type="range" min="10" max="144" step="2" value="40" />
+            <p class="ui-hint">限制实测帧数，避免占满 CPU。</p>
+          </section>
+
+          <section class="ui-group">
+            <h2>画质</h2>
+            <label class="ui-row" for="shadowQuality">
+              <span>阴影质量</span>
+              <b id="shadowQualityVal">中</b>
+            </label>
+            <input id="shadowQuality" type="range" min="0" max="3" step="1" value="2" />
+
+            <label class="ui-row" for="renderScale">
+              <span>渲染倍率</span>
+              <b id="renderScaleVal">100%</b>
+            </label>
+            <input id="renderScale" type="range" min="50" max="150" step="5" value="100" />
+
+            <label class="ui-row" for="outline">
+              <span>轮廓线</span>
+              <b id="outlineVal">开</b>
+            </label>
+            <input id="outline" type="range" min="0" max="1" step="1" value="1" />
+
+            <label class="ui-check">
+              <input id="reflection" type="checkbox" checked />
+              <span>地面积水反射</span>
+            </label>
+
+            <label class="ui-check">
+              <input id="wetShine" type="checkbox" checked />
+              <span>湿润高光</span>
+            </label>
+          </section>
+
+          <section class="ui-group">
+            <h2>雨与动态</h2>
+            <label class="ui-row" for="rainAmount">
+              <span>雨量</span>
+              <b id="rainAmountVal">100%</b>
+            </label>
+            <input id="rainAmount" type="range" min="0" max="150" step="5" value="100" />
+
+            <label class="ui-check">
+              <input id="splash" type="checkbox" checked />
+              <span>地面积水波纹</span>
+            </label>
+
+            <label class="ui-check">
+              <input id="autoDoor" type="checkbox" checked />
+              <span>自动门开合</span>
+            </label>
+
+            <label class="ui-check">
+              <input id="flicker" type="checkbox" checked />
+              <span>招牌灯箱闪烁</span>
+            </label>
+          </section>
+
+          <section class="ui-group">
+            <h2>视角</h2>
+            <div class="ui-btns">
+              <button type="button" data-view="hero">街角主视角</button>
+              <button type="button" data-view="front">店面正视</button>
+              <button type="button" data-view="top">俯视模型</button>
+              <button type="button" data-view="alley">小巷侧</button>
+            </div>
+            <div class="ui-btns">
+              <button type="button" data-action="reset">恢复默认</button>
+              <button type="button" data-action="auto">自动旋转</button>
+            </div>
+          </section>
+
+          <footer class="ui-foot">
+            <span id="ui-stats">—</span>
+          </footer>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 早期错误捕获：即使模块加载失败也能把原因写进 #diag
+      (function () {
+        var diag = document.getElementById('diag');
+        function report(msg) {
+          if (!diag) return;
+          try {
+            var prev = diag.textContent ? JSON.parse(diag.textContent) : { errors: [] };
+          } catch (e) {
+            var prev = { errors: [] };
+          }
+          prev.errors = prev.errors || [];
+          prev.errors.push(String(msg));
+          prev.ok = false;
+          prev.errorCount = prev.errors.length;
+          diag.textContent = JSON.stringify(prev);
+          document.title = 'DIAG ' + diag.textContent;
+        }
+        window.addEventListener('error', function (e) {
+          var extra = e.error && e.error.stack ? ' :: ' + e.error.stack : '';
+          report((e.message || 'error') + ' @ ' + (e.filename || '?') + ':' + (e.lineno || 0) + extra);
+        });
+        window.addEventListener('unhandledrejection', function (e) {
+          report('unhandledrejection: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+        });
+      })();
+    </script>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

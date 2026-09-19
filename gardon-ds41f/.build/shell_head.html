@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>湖畔花园的四季来信 · Letters of the Four Seasons</title>
+<style>
+  :root{
+    --paper:#f4eee3; --paper2:#efe6d7; --ink:#4b4136; --ink2:#8b7f6e;
+    --line:rgba(75,65,54,.18); --shadow:0 8px 30px rgba(60,48,34,.16);
+    --spring:#e9a8bb; --summer:#7fb069; --autumn:#d9903f; --winter:#8fb6d8;
+    --accent:#b0764a;
+    --panel:rgba(248,243,235,.90);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;overflow:hidden;background:#e7ddd0;
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",sans-serif;
+    color:var(--ink);}
+  #stage{position:fixed;inset:0;display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+  #stage.dragging{cursor:grabbing}
+
+  .ui{position:fixed;z-index:10;user-select:none;-webkit-user-select:none}
+
+  /* ---------- title card ---------- */
+  #title{top:18px;left:20px;max-width:min(46vw,420px);pointer-events:none}
+  #title h1{margin:0;font-size:19px;font-weight:600;letter-spacing:.10em;color:#4d4236;
+    text-shadow:0 1px 0 rgba(255,255,255,.65)}
+  #title .sub{margin:5px 0 0;font-size:11.5px;letter-spacing:.24em;color:#8d8071;
+    text-transform:uppercase;opacity:.9}
+  #title .zh{margin:9px 0 0;font-size:11.5px;line-height:1.75;color:#7c7062;letter-spacing:.03em}
+
+  /* ---------- season / time readout ---------- */
+  #hud{left:50%;bottom:22px;transform:translateX(-50%);width:min(680px,92vw);
+    background:var(--panel);backdrop-filter:blur(14px) saturate(1.1);
+    border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);
+    padding:11px 16px 12px;}
+  #hudTop{display:flex;align-items:center;gap:12px;font-size:11.5px;color:#7b6f60;letter-spacing:.04em}
+  #seasonName{font-size:13px;font-weight:600;color:#574b3e;letter-spacing:.08em;min-width:112px}
+  #hudTop .spacer{flex:1}
+  .chip{padding:2px 8px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.5);
+    font-variant-numeric:tabular-nums}
+  #yearBar{margin-top:9px;height:16px;border-radius:9px;position:relative;
+    background:linear-gradient(90deg,var(--spring) 0%,var(--summer) 25%,var(--autumn) 50%,var(--winter) 75%,var(--spring) 100%);
+    box-shadow:inset 0 1px 3px rgba(70,55,40,.22);cursor:pointer;overflow:hidden}
+  #yearFill{position:absolute;inset:0;background:rgba(250,246,240,.82);transform-origin:left center}
+  #yearMarks{position:absolute;inset:0;pointer-events:none}
+  #yearMarks i{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.55)}
+  #yearCursor{position:absolute;top:-3px;width:3px;height:22px;border-radius:2px;background:#5c5044;
+    box-shadow:0 0 0 2px rgba(255,255,255,.75)}
+  #hudBottom{display:flex;align-items:center;gap:14px;margin-top:9px;font-size:11.5px;color:#7b6f60}
+  #hudBottom label{display:flex;align-items:center;gap:7px}
+  input[type=range]{-webkit-appearance:none;appearance:none;height:3px;border-radius:2px;
+    background:rgba(90,78,64,.24);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;
+    background:#fff;border:1.5px solid var(--accent);box-shadow:0 1px 3px rgba(60,45,30,.28);cursor:pointer}
+  .btn{border:1px solid var(--line);background:rgba(255,255,255,.62);border-radius:9px;
+    padding:4px 10px;font-size:11.5px;color:#5c5044;cursor:pointer;letter-spacing:.05em;
+    font-family:inherit;transition:background .18s,transform .18s}
+  .btn:hover{background:#fff}
+  .btn:active{transform:translateY(1px)}
+  .btn.on{background:#5c5044;color:#f7f2e9;border-color:#5c5044}
+
+  /* ---------- settings panel ---------- */
+  #gear{right:18px;bottom:22px;width:42px;height:42px;border-radius:50%;display:grid;place-items:center;
+    background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow);cursor:pointer;
+    backdrop-filter:blur(14px);transition:transform .3s}
+  #gear:hover{transform:rotate(45deg)}
+  #gear svg{width:20px;height:20px;stroke:#6a5c4b;fill:none;stroke-width:1.6}
+
+  #panel{right:18px;bottom:74px;width:308px;max-height:min(74vh,660px);overflow:auto;
+    background:var(--panel);backdrop-filter:blur(16px) saturate(1.15);
+    border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);
+    padding:14px 15px 16px;transform-origin:bottom right;
+    transition:opacity .26s ease,transform .26s cubic-bezier(.2,.8,.3,1);
+    opacity:0;transform:scale(.94) translateY(10px);pointer-events:none}
+  #panel.open{opacity:1;transform:none;pointer-events:auto}
+  #panel::-webkit-scrollbar{width:7px}
+  #panel::-webkit-scrollbar-thumb{background:rgba(120,104,84,.28);border-radius:4px}
+  .sec{margin-bottom:13px}
+  .sec>h3{margin:0 0 8px;font-size:11px;font-weight:600;letter-spacing:.16em;color:#95886f;
+    text-transform:uppercase;display:flex;align-items:center;gap:8px}
+  .sec>h3:after{content:"";flex:1;height:1px;background:var(--line)}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    font-size:12px;color:#6a5f50;padding:3px 0}
+  .row>span:first-child{flex:0 0 auto;letter-spacing:.03em}
+  .val{font-variant-numeric:tabular-nums;color:#4a4034;font-size:11.5px;min-width:44px;text-align:right}
+  .row input[type=range]{flex:1;min-width:70px}
+  select{font-family:inherit;font-size:11.5px;color:#5c5044;background:rgba(255,255,255,.7);
+    border:1px solid var(--line);border-radius:8px;padding:3px 7px;cursor:pointer;outline:none}
+  .seg{display:flex;gap:0;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:rgba(255,255,255,.5)}
+  .seg button{border:0;background:transparent;font-family:inherit;font-size:11px;color:#6a5f50;
+    padding:4px 9px;cursor:pointer;letter-spacing:.04em;transition:background .18s,color .18s}
+  .seg button.on{background:#5c5044;color:#f7f2e9}
+  .sw{width:36px;height:20px;border-radius:11px;background:rgba(90,78,64,.22);position:relative;
+    cursor:pointer;transition:background .22s;flex:0 0 auto}
+  .sw:after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 3px rgba(60,45,30,.3);transition:left .22s}
+  .sw.on{background:var(--accent)}
+  .sw.on:after{left:18px}
+  #panel .note{font-size:10.5px;line-height:1.6;color:#9a8d78;letter-spacing:.02em;margin-top:2px}
+
+  /* ---------- 3D knob hint ---------- */
+  #knobHint{left:50%;bottom:104px;transform:translateX(-50%);font-size:11px;letter-spacing:.08em;
+    color:#7b6f60;background:rgba(248,243,235,.78);border:1px solid var(--line);
+    padding:4px 11px;border-radius:999px;box-shadow:var(--shadow);opacity:1;
+    transition:opacity .6s}
+  #knobHint.fade{opacity:0}
+
+  /* ---------- diagnostics ---------- */
+  #diag{right:18px;top:18px;font-size:11px;line-height:1.7;color:#7b6f60;text-align:right;
+    font-variant-numeric:tabular-nums;letter-spacing:.03em;pointer-events:none;
+    text-shadow:0 1px 0 rgba(255,255,255,.6)}
+  #diag b{color:#5a4e40;font-weight:600}
+
+  /* ---------- boot ---------- */
+  #boot{position:fixed;inset:0;z-index:50;display:grid;place-items:center;
+    background:linear-gradient(160deg,#f6f1e7,#e8ded0);transition:opacity .8s ease}
+  #boot.gone{opacity:0;pointer-events:none}
+  #boot .box{text-align:center}
+  #boot h2{margin:0 0 10px;font-size:17px;font-weight:600;letter-spacing:.16em;color:#5a4e40}
+  #boot p{margin:0;font-size:11.5px;letter-spacing:.14em;color:#94866f}
+  #boot .bar{margin-top:16px;width:190px;height:2px;background:rgba(120,104,84,.2);border-radius:2px;overflow:hidden}
+  #boot .bar i{display:block;height:100%;width:22%;background:var(--accent);border-radius:2px;
+    animation:load 1.15s ease-in-out infinite}
+  @keyframes load{0%{transform:translateX(-110%)}100%{transform:translateX(560%)}}
+
+  @media (max-width:760px){
+    #title{max-width:60vw}#title .zh{display:none}
+    #panel{width:min(90vw,308px)}
+    #hud{width:94vw;bottom:14px;padding:9px 12px 10px}
+    #gear{bottom:16px}#knobHint{display:none}
+    #diag{font-size:10px}
+  }
+</style>
+</head>
+<body>
+<canvas id="stage"></canvas>
+
+<div class="ui" id="title">
+  <h1>湖畔花园的四季来信</h1>
+  <div class="sub">Letters of the Four Seasons</div>
+  <div class="zh">同一座微缩花园，同一张橡木桌。<br>拖拽环视 · 滚轮缩放 · 拖动桌上铜旋钮调节四季</div>
+</div>
+
+<div class="ui" id="diag"></div>
+
+<div class="ui" id="hud">
+  <div id="hudTop">
+    <span id="seasonName">春 · Spring</span>
+    <span class="chip" id="tempChip">12.0℃</span>
+    <span class="chip" id="clockChip">12:00</span>
+    <span class="spacer"></span>
+    <span class="chip" id="dayChip">昼 12.6h</span>
+    <button class="btn" id="btnPlay">暂停</button>
+    <button class="btn on" id="btnOrbit">自动环绕</button>
+  </div>
+  <div id="yearBar" title="点击或拖动以调整季节进度">
+    <div id="yearFill"></div>
+    <div id="yearMarks"></div>
+    <div id="yearCursor"></div>
+  </div>
+  <div id="hudBottom">
+    <label>流速<input type="range" id="speedRange" min="0" max="300" value="100" style="width:104px"></label>
+    <label>天气<input type="range" id="weatherRange" min="0" max="150" value="100" style="width:88px"></label>
+    <span id="speedVal" class="val">1.00×</span>
+  </div>
+</div>
+
+<div class="ui" id="knobHint">桌上三枚铜旋钮：流速 · 季节 · 天气</div>
+
+<div class="ui" id="gear" title="设置">
+  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/>
+  <path d="M12 2.6v2.4M12 19v2.4M2.6 12h2.4M19 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M18.7 5.3L17 7M7 17l-1.7 1.7"/></svg>
+</div>
+
+<div class="ui" id="panel">
+  <div class="sec">
+    <h3>性能 Performance</h3>
+    <div class="row"><span>画质档位</span>
+      <div class="seg" id="segPreset">
+        <button data-v="0">省电</button><button data-v="1" class="on">均衡</button><button data-v="2">精细</button>
+      </div>
+    </div>
+    <div class="row"><span>帧率上限</span>
+      <select id="selFps">
+        <option value="30">30 FPS</option>
+        <option value="45">45 FPS</option>
+        <option value="60" selected>60 FPS</option>
+        <option value="90">90 FPS</option>
+        <option value="120">120 FPS</option>
+        <option value="0">不限（最高）</option>
+      </select>
+    </div>
+    <div class="row"><span>渲染比例</span><input type="range" id="rScale" min="45" max="100" value="100"><span class="val" id="vScale">100%</span></div>
+    <div class="row"><span>阴影质量</span>
+      <select id="selShadow">
+        <option value="0">关闭</option>
+        <option value="1024">低 1024</option>
+        <option value="2048" selected>中 2048</option>
+        <option value="4096">高 4096</option>
+      </select>
+    </div>
+    <div class="row"><span>粒子密度</span><input type="range" id="rPart" min="20" max="140" value="100"><span class="val" id="vPart">100%</span></div>
+    <div class="row"><span>闲置时暂停渲染</span><div class="sw" id="swIdle"></div></div>
+    <div class="note">帧率上限使用 requestAnimationFrame 节流，可显著降低 CPU / GPU 占用。渲染比例按 DPR 缩放画布。</div>
+  </div>
+
+  <div class="sec">
+    <h3>观感 Appearance</h3>
+    <div class="row"><span>视角环绕</span>
+      <div class="seg" id="segOrbit"><button data-v="0">关</button><button data-v="1" class="on">开</button></div>
+    </div>
+    <div class="row"><span>环绕速度</span><input type="range" id="rOrbit" min="10" max="200" value="70"><span class="val" id="vOrbit">0.7×</span></div>
+    <div class="row"><span>自动曝光</span><div class="sw on" id="swExpo"></div></div>
+    <div class="row"><span>柔光泛光</span><div class="sw on" id="swGlow"></div></div>
+    <div class="row"><span>显示信息</span><div class="sw on" id="swDiag"></div></div>
+    <div class="row"><span>季节时长</span><input type="range" id="rCycle" min="120" max="900" step="30" value="480"><span class="val" id="vCycle">480s</span></div>
+    <div class="note">四季完整循环默认约 8 分钟，可在此或用水面旋钮调整。</div>
+  </div>
+</div>
+
+<script>
+/* runtime diagnostics: with ?debug=1 any thrown error is mirrored into the
+   document title and the on-screen panel, so a headless run can read it. */
+window.__err = [];
+window.__dbg = /(\?|&)debug=1/.test(location.search);
+window.__report = function (msg) {
+  window.__err.push(msg);
+  window.__paint();
+};
+window.__paint = function () {
+  if (!window.__dbg) return;
+  document.title = (window.__err.length ? 'ERR: ' + window.__err.join(' || ') : 'READY') +
+    (window.__note ? ' :: ' + window.__note : '');
+};
+window.addEventListener('error', function (e) {
+  window.__report((e.message || 'error') + ' @' + (e.lineno || '?') + ':' + (e.colno || '?'));
+});
+window.addEventListener('unhandledrejection', function (e) {
+  window.__report('promise: ' + (e.reason && e.reason.stack ? e.reason.stack : e.reason));
+});
+/* three.js logs shader compile failures through console.error – mirror them
+   into the title, but only while ?debug=1 is active. */
+if (window.__dbg) (function () {
+  var ce = console.error, cw = console.warn;
+  console.error = function () {
+    var s = Array.prototype.map.call(arguments, function (a) {
+      return (a && a.message) ? a.message : String(a);
+    }).join(' ');
+    if (/shader|program|glsl|error/i.test(s)) window.__report('console: ' + s.slice(0, 1200));
+    ce.apply(console, arguments);
+  };
+  console.warn = function () {
+    var s = Array.prototype.map.call(arguments, function (a) {
+      return (a && a.message) ? a.message : String(a);
+    }).join(' ');
+    if (/shader|program|glsl/i.test(s)) window.__report('warn: ' + s.slice(0, 1200));
+    cw.apply(console, arguments);
+  };
+})();
+</script>
+<script id="three-src" type="text/plain">

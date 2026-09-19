@@ -1,0 +1,32 @@
+.settings-panel { position: absolute; right: calc(3.5% + 65px); top: 42%; width: 260px; background: #f8f7eff5; padding: 23px; border: 1px solid #fff; border-radius: 12px; box-shadow: 0 12px 38px #273f3921; z-index: 6; }
+.settings-panel h2 { font-family: "STSong", "SimSun", serif; font-size: 20px; font-weight: 400; margin: 0 0 19px; }
+.settings-panel > label { display: flex; align-items: center; justify-content: space-between; font-size: 11px; margin-top: 13px; gap: 10px; min-height: 35px; }
+.settings-panel select { background: #e9eddf; border: 1px solid #d8dfd1; padding: 9px 11px; color: #3f5547; border-radius: 5px; font-size: 11px; min-width: 98px; }
+.settings-panel .check-label { justify-content: flex-start; gap: 8px; font-size: 11px; }
+.check-label input { accent-color: #3d6350; }
+.check-label > span { color: #6c7d68; font-size: 9px; }
+.settings-panel > p { font-size: 10px; color: #65785e; line-height: 1.8; margin-bottom: 0; }
+dialog { color: #2c4542; background: #f5f4eb; border: 1px solid white; border-radius: 4px; width: min(560px, calc(100vw - 32px)); max-height: calc(100svh - 64px); padding: 42px; box-shadow: 0 35px 120px #1f322d42; }
+dialog::backdrop { background: #344d464d; backdrop-filter: blur(5px); }
+.dialog-close { position: absolute; right: 11px; top: 9px; width: 44px; height: 44px; font-size: 26px; font-weight: 200; color: #687a6e; }
+dialog > h2 { font-family: "STSong", "SimSun", serif; font-size: 29px; font-weight: 400; letter-spacing: 2px; margin: 20px 0; }
+.dialog-intro { font-size: 12px; line-height: 2; color: #5c7062; }
+.construction-list { padding: 0; margin: 28px 0 20px; list-style: none; }
+.construction-list > li { border-top: 1px solid #d6ddcd; display: flex; gap: 19px; padding: 17px 0 12px; }
+.construction-list > li > span { font-family: Georgia, serif; color: #939e88; font-size: 18px; }
+.construction-list h3 { font-size: 13px; font-weight: 500; margin: 0 0 8px; letter-spacing: 1px; }
+.construction-list p { font-size: 11px; line-height: 1.9; margin: 0; color: #637664; }
+.model-note { font-size: 10px; line-height: 1.9; color: #677764; margin-bottom: 25px; }
+.diagnostics { position: absolute; bottom: 70px; left: 24px; z-index: 20; padding: 12px 15px; background: #233c39f2; color: #eaf0e2; border: 1px solid #6a7b67; border-radius: 7px; font-size: 10px; width: 286px; box-shadow: 0 6px 25px #223d2420; }
+.diagnostics > strong { font-size: 10px; letter-spacing: 1px; color: #d0dfb8; }
+.diagnostics output { display: block; margin-top: 8px; line-height: 1.7; }
+.diagnostics > div { display: flex; gap: 8px; margin: 9px 0 0; }
+.diagnostics button { padding: 8px 10px; background: #4c6558; color: #f8f8ef; border-radius: 3px; font-size: 10px; min-height: 32px; }
+.diagnostics details { margin-top: 9px; }
+.diagnostics summary { cursor: pointer; color: #b7c6ad; }
+.diagnostics pre { max-height: 240px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 9px; }
+.fatal-error { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(420px, calc(100% - 40px)); background: #f7f5ea; border: 1px solid #d5cebb; padding: 32px; color: #754b37; z-index: 30; }
+.fatal-error h2 { font-family: "STSong", "SimSun", serif; font-weight: 400; margin-top: 0; }
+.fatal-error p { font-size: 12px; line-height: 1.8; }
+@media (max-width: 900px) { .settings-panel { top: auto; bottom: 207px; right: 78px; } .diagnostics { left: 12px; bottom: 134px; width: 235px; opacity: .94; } }
+@media (max-width: 540px) { .settings-panel { right: 69px; bottom: 175px; width: 240px; padding: 20px; } dialog { padding: 29px 24px; } dialog > h2 { font-size: 24px; letter-spacing: 1px; } .diagnostics { width: 215px; bottom: 135px; padding: 10px 12px; } .diagnostics output { font-size: 9px; } }

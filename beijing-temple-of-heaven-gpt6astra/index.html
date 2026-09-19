@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#eeeee7" />
+    <meta name="description" content="在天地之间，读懂一座祈年殿。可旋转、缩放、逐层拆解的程序化中国古建筑。" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23253940'/%3E%3Cpath d='M32 10L19 25H45ZM32 22L12 37H52ZM32 32L7 49H57M17 51V57H47V51' fill='none' stroke='%23e3c990' stroke-width='3' stroke-linejoin='round'/%3E%3C/svg%3E" />
+    <title>天坛 · 祈年殿 | 天地之间</title>
+  </head>
+  <body>
+    <div id="app">
+      <div id="viewport" aria-label="祈年殿三维场景"></div>
+      <div class="paper-wash" aria-hidden="true"></div>
+
+      <header class="site-header">
+        <a class="brand" href="./" aria-label="天坛，回到初始页面">
+          <svg class="brand-mark" viewBox="0 0 42 46" fill="none" aria-hidden="true"><path d="M21 3v4M21 7C18 15 12 17 10 18h22C29 17 24 14 21 7ZM21 16C16 23 9 26 6 27h30C32 26 26 22 21 16ZM21 24C15 32 6 35 2 36h38C35 35 26 30 21 24ZM9 38v5m8-5v5m8-5v5m8-5v5M5 44h32" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+          <span class="brand-name">天坛<span>TEMPLE OF HEAVEN</span></span>
+          <span class="brand-divider"></span>
+          <span class="brand-caption">数字古建<br />天地之间</span>
+        </a>
+        <nav class="top-nav" aria-label="主要导航">
+          <button class="nav-button is-active" id="overview-button" type="button">全景漫游</button>
+          <button class="nav-button" id="notes-button" type="button">营造手记<span aria-hidden="true">↗</span></button>
+        </nav>
+        <div class="location"><span class="status-dot"></span>北京，中国<span class="location-coordinates">39°52′ N · 116°24′ E</span></div>
+      </header>
+
+      <main>
+        <section class="intro" aria-labelledby="main-title">
+          <div class="eyebrow"><span></span>中国古建漫游 <span class="issue">NO. 001</span></div>
+          <h1 id="main-title">天圆<span class="title-second">地方<span class="seal" aria-label="祈年">祈<br />年</span></span></h1>
+          <p class="english-title">A DIALOGUE<br />BETWEEN EARTH & SKY</p>
+          <div class="intro-rule"></div>
+          <p class="intro-copy" id="intro-copy">一座祈年殿，六百年天地之间。<br />循着一片蓝瓦，走进中国古建的秩序之美。</p>
+          <button class="primary-button" id="explode-button" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m12 3 9 5-9 5-9-5 9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span id="explode-label">拆解祈年殿</span><span class="button-arrow" aria-hidden="true">↗</span></button>
+          <p class="action-caption" id="action-caption">让屋檐之下的巧思，一层层展开</p>
+          <div class="structure-progress" aria-hidden="true"><span id="structure-progress"></span></div>
+          <div class="facts">
+            <div><span class="fact-value">三<span>重檐</span></span><span class="fact-label">琉璃叠翠，攒尖向天</span></div>
+            <div><span class="fact-value">二十八<span>根柱</span></span><span class="fact-label">四时、十二月与星宿</span></div>
+          </div>
+        </section>
+
+        <div class="scene-caption"><span class="caption-line"></span><span>祈年殿<span class="caption-en">HALL OF PRAYER FOR GOOD HARVESTS</span></span></div>
+        <div id="annotations" class="annotations" aria-hidden="true">
+          <div class="annotation" data-anchor="roof"><span>01</span><p>蓝瓦攒尖<small>三重檐 · 鎏金宝顶</small></p></div>
+          <div class="annotation" data-anchor="frame"><span>02</span><p>朱柱彩枋<small>木构架 · 层叠斗拱</small></p></div>
+          <div class="annotation" data-anchor="terrace"><span>03</span><p>汉白玉台基<small>三层圆坛 · 石雕望柱</small></p></div>
+        </div>
+
+        <div class="view-tools" aria-label="视角工具">
+          <button id="zoom-in" type="button" aria-label="放大" title="放大"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg></button>
+          <button id="zoom-out" type="button" aria-label="缩小" title="缩小"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+          <span class="tool-divider"></span>
+          <button id="reset-button" type="button" aria-label="复位视角" title="复位视角 (R)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10a8 8 0 1 1 1 7M4 4v6h6"/></svg></button>
+          <button id="settings-button" type="button" aria-label="显示画质设置" aria-expanded="false" aria-controls="settings-panel" title="画质设置"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16M8 4v6m8 4v6"/></svg></button>
+        </div>
+
+        <section class="settings-panel" id="settings-panel" aria-labelledby="settings-title" hidden>
+          <h2 id="settings-title">按你的节奏看</h2>
+          <label for="quality-select">画面细节<select id="quality-select"><option value="eco">节能</option><option value="balanced" selected>平衡</option><option value="high">精细</option></select></label>
+          <label for="fps-select">帧率上限<select id="fps-select"><option value="6">6 FPS</option><option value="12">12 FPS</option><option value="24">24 FPS</option><option value="30" selected>30 FPS</option><option value="60">60 FPS</option></select></label>
+          <label class="check-label"><input type="checkbox" id="ao-toggle" checked />环境遮蔽<span>增添构件层次</span></label>
+          <p>静止时停止绘制；切到后台自动暂停。</p>
+        </section>
+
+        <div class="viewer-bar">
+          <div class="view-presets" role="group" aria-label="预设视角"><button type="button" data-view="perspective" class="is-active" aria-pressed="true">经典视角</button><button type="button" data-view="front" aria-pressed="false">中轴正望</button><button type="button" data-view="top" aria-pressed="false">俯瞰圆坛</button></div>
+          <span class="bar-divider"></span>
+          <button class="orbit-button" id="orbit-button" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><ellipse cx="12" cy="12" rx="9" ry="5" stroke="currentColor" stroke-width="1.4"/><path d="m17 5 4 5-6 1" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>自动环绕<span class="toggle-track" aria-hidden="true"><span></span></span></button>
+          <span class="bar-divider"></span>
+          <button class="annotation-button" id="annotation-button" type="button" aria-pressed="false" title="显示建筑标注"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 11v6m0-10v1"/></svg><span>标注</span></button>
+        </div>
+
+        <div class="compass" aria-hidden="true"><span>N</span><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="currentColor" stroke-width=".6" stroke-dasharray="1 5"/><g id="compass-needle"><path d="m32 10 5 22h-10Z" fill="#8f4538"/><path d="m32 54 5-22h-10Z" fill="#9baba9"/></g><circle cx="32" cy="32" r="2" fill="currentColor"/></svg></div>
+        <div class="loading" id="loading" role="status"><span class="loading-line"></span><span>正在营造天地之间…</span></div>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      </main>
+
+      <footer class="site-footer"><span class="footer-edition">古建新观 <span>HERITAGE, REIMAGINED.</span></span><span class="interaction-hint"><svg viewBox="0 0 16 20" fill="none" aria-hidden="true"><rect x="2" y="1" width="12" height="18" rx="6" stroke="currentColor"/><path d="M8 4v4" stroke="currentColor"/></svg>拖动旋转<span>·</span>滚轮缩放<span>·</span>右键平移</span><span class="footer-note">始建于 1420 年<span>永乐十八年</span></span></footer>
+
+      <dialog id="notes-dialog" aria-labelledby="notes-title">
+        <button class="dialog-close" id="close-notes" type="button" aria-label="关闭营造手记">×</button>
+        <span class="eyebrow">THE ART OF CONSTRUCTION</span>
+        <h2 id="notes-title">一圈一层，皆有章法。</h2>
+        <p class="dialog-intro">祈年殿以圆形象天，三重蓝色琉璃瓦檐攒向金顶。它的轻盈，来自层层相承的木构秩序。</p>
+        <ol class="construction-list"><li><span>01</span><div><h3>蓝瓦与金顶</h3><p>屋面从陡峭的脊部缓缓舒展，檐缘微微上翘。三重屋顶依次收分，瓦垄沿圆周放射。</p></div></li><li><span>02</span><div><h3>朱柱、斗拱与彩绘</h3><p>外圈十二柱、内圈十二柱与四根中心柱构成骨架。青绿、靛蓝与金色纹样点缀枋梁，斗拱交错承托出檐。</p></div></li><li><span>03</span><div><h3>门窗与殿身</h3><p>十二开间围合成圆，朱红隔扇上的几何格心、裙板与铜钉，让宏大尺度也有细密的触感。</p></div></li><li><span>04</span><div><h3>三层汉白玉圆坛</h3><p>环形栏板、雕饰望柱与四向石阶层层展开。南向中央御路以程序绘制的云龙纹作浅浮雕表现。</p></div></li></ol>
+        <p class="model-note">这是一份以建筑特征为依据的程序化艺术重现，并非测绘级复原。祈年殿现有形制经过明清改建；1420 年为其始建年份。</p>
+        <button class="primary-button" id="notes-explode" type="button">走进建筑构造<span class="button-arrow">↗</span></button>
+      </dialog>
+
+      <aside class="diagnostics" id="diagnostics" aria-label="有限帧数测试" hidden><strong>有限帧数测试</strong><output id="diagnostic-summary"></output><div><button id="test-step" type="button">绘制 1 帧</button><button id="test-run" type="button">运行 24 帧</button></div><details><summary>运行数据</summary><pre id="diagnostic-data"></pre></details></aside>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

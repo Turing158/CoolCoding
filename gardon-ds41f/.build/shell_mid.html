@@ -1,0 +1,7 @@
+
+</script>
+
+<script type="module">
+const THREE = await import(URL.createObjectURL(new Blob(
+  [document.getElementById('three-src').textContent], { type: 'text/javascript' })));
+document.getElementById('three-src').remove();
